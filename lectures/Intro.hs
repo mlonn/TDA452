@@ -9,17 +9,17 @@ during the first lecture.
 
        
 ---------------------------------------------------------------------------------- * Currency conversion
+import Test.QuickCheck
 
 exchangeRate = 9.7145  -- SEK / EUR
 
---toEUR 
+toEUR sek = sek / exchangeRate
 
---toSEK
+toSEK eur = eur * exchangeRate
 
-
-
---prop_exchange
-
+prop_exchange s = toSEK (toEUR s) ~== s
+  where
+    x ~== y = abs(x-y) < 1e-10
 
 -- automated random testing with QuickCheck
 
@@ -28,19 +28,24 @@ exchangeRate = 9.7145  -- SEK / EUR
 --------------------------------------------------------------------------------
 -- * Definition by cases
 
---absolute x
+absolute x | x>=0 = x
+absolute x | x<0 = -x
 
+absolute2 x | x>=0 = x
+            | x<0 = -x
 
+absolute3 x = if x>=0 then x else -x
 -- local definitions
 
 --------------------------------------------------------------------------------
 -- * Definition by recursion
 -- The power function n^k
 
---power n k
+power n k | k==0 = 1
+          | k>0 = power n (k-1) * n
 
---prop_power
-
+prop_power n k = power n k' == n^k'
+    where k' = abs k
 
 -- intersecting lines
 
