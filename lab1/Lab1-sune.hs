@@ -1,4 +1,4 @@
-import Test.QuickCheck
+import           Test.QuickCheck
 
 --    Part 1
 -- It should take k-1 steps for the algorithm.

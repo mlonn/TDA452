@@ -2,7 +2,7 @@
 Part 1
 It uses k+1 steps
 -}
-import Test.QuickCheck
+import           Test.QuickCheck
 -- power n^k
 power :: Integer -> Integer -> Integer
 power n k | k < 0 = error "power: negative argument"
