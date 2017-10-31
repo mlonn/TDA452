@@ -7,13 +7,11 @@ This is just a skeleton, the function definitions will be filled in
 during the first lecture.
 -}
 
-       
+
 ---------------------------------------------------------------------------------- * Currency conversion
 import Test.QuickCheck
 
 exchangeRate = 9.7145  -- SEK / EUR
-
-toEUR sek = sek / exchangeRate
 
 toSEK eur = eur * exchangeRate
 
@@ -54,11 +52,11 @@ prop_power n k = power n k' == n^k'
 --------------------------------------------------------------------------------
 -- * Tuples
 
---examplePair = 
+--examplePair =
 
---exampleTriple = 
+--exampleTriple =
 
---exampleFunction (b,n,s) = 
+--exampleFunction (b,n,s) =
 
 --------------------------------------------------------------------------------
 -- * List
