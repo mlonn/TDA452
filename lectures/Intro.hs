@@ -7,12 +7,12 @@ This is just a skeleton, the function definitions will be filled in
 during the first lecture.
 -}
 
-       
+
 ---------------------------------------------------------------------------------- * Currency conversion
 
 exchangeRate = 9.7145  -- SEK / EUR
 
---toEUR 
+--toEUR
 
 --toSEK
 
@@ -49,11 +49,11 @@ exchangeRate = 9.7145  -- SEK / EUR
 --------------------------------------------------------------------------------
 -- * Tuples
 
---examplePair = 
+--examplePair =
 
---exampleTriple = 
+--exampleTriple =
 
---exampleFunction (b,n,s) = 
+--exampleFunction (b,n,s) =
 
 --------------------------------------------------------------------------------
 -- * List
