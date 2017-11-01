@@ -23,16 +23,23 @@ value (Add card hand) | handValue <= 21 = handValue
 -- | Translates the rank to its value.
 valueRank :: Rank -> Integer
 valueRank Ace             = 11
-valueRank King            = 10
-valueRank Queen           = 10
-valueRank Jack            = 10
 valueRank (Numeric value) = value
+valueRank _               = 10
+
+{-
+valueRank :: Rank -> Integer
+valueRank r
+	| r == Ace = 11
+	| r == Numeric value = value
+	| otherwise = 10
+-}
 
 -- | Recursivly counts all aces in the given hand.
 numberOfAces :: Hand -> Integer
 numberOfAces Empty                              = 0
 numberOfAces (Add card hand) | rank card == Ace = 1 + numberOfAces hand
                              | otherwise        = numberOfAces hand
+
 -- | Checks if the hands value is above 21
 gameOver :: Hand -> Bool
 gameOver hand = value hand > 21 
