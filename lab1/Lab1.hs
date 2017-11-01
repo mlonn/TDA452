@@ -44,5 +44,6 @@ runTest = printResult (length (filter (==True) result)) (length result)
     where result = [ prop_powers n k | n <- n, k <- k]
 
 printResult ok all = putStrLn $ "Tests ok: " ++ show ok ++ "/" ++ show all
+
 -- D.
 prop_powers' n k = prop_powers n $ abs k
