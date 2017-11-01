@@ -10,8 +10,10 @@ module BlackJackSune where
     
     value :: Hand -> Integer
     value Empty = 0
-    value (Add card hand) = valueRank (rank card) + value hand
-    
+    value (Add card hand) | a <= 21 = a
+                          | a > 21 = a - numberOfAces (Add card hand) * 10
+        where a = valueRank (rank card) + value hand
+
     numberOfAces :: Hand -> Integer
     numberOfAces Empty = 0
     numberOfAces (Add card hand) | rank card == Ace = 1 + numberOfAces hand
