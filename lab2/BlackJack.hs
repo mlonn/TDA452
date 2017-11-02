@@ -54,10 +54,15 @@ winner guest bank  | gameOver guest           = Bank
                    | otherwise                = Bank
 
 -- | Keeps the order and places the first hand on top of the second one.
+-- (<+) :: Hand -> Hand -> Hand
+-- Empty <+ bottom = bottom
+-- top <+ bottom   = top' ~+ bottom
+--      where top' = flipHand top
+
 (<+) :: Hand -> Hand -> Hand
 Empty <+ bottom = bottom
-top <+ bottom   = top' ~+ bottom
-     where top' = flipHand top
+top <+ bottom   = Add card (hand <+ bottom)
+   where (Add card hand) = top
 
 -- | Adds one hand to another. (Reverses order of first hand)
 -- Takes first card from first argument and puts it on top of the second
@@ -76,12 +81,18 @@ prop_onTopOf_assoc p1 p2 p3 =
     p1<+(p2<+p3) == (p1<+p2)<+p3
 
 
-{-
 prop_size_onTopOf :: Hand -> Hand -> Bool
-
+prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
 fullDeck :: Hand
+fullDeck = fullSuit Spades <+ fullSuit Hearts 
+            <+ fullSuit Clubs <+ fullSuit Diamonds
 
+fullSuit :: Suit -> Hand
+fullSuit suit = Add (Card Ace suit) empty
+
+ranks = [Numeric value | value <- [1..10]] ++ [Jack, Queen, King, Ace]
+{-
 draw :: Hand -> Hand -> (Hand,Hand)
 
 -- error "draw: The deck is empty."
