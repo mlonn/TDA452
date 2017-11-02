@@ -1,24 +1,32 @@
 module BlackJack where
-import Cards
-import RunGame
+import           Cards
+import           RunGame
 
 -- | Hands for testing
 hand1 = Add (Card (Numeric 2) Spades) (Add (Card Ace Clubs) empty)
 hand2 = Add (Card Ace Hearts) hand1
+hand3 = Add (Card Ace Hearts) hand2
+
 
 -- | Returns an empty hand
 empty :: Hand
 empty = Empty
 
--- | Find the value of a given hand. 
+-- | Find the value of a given hand.
 -- Aces will count as 11 if possible otherwise 1
 value :: Hand -> Integer
-value Empty           = 0
-value (Add card hand) | handValue <= 21 = handValue
-                      | handValue > 21 = handValue - aceValue
+value Empty                  = 0
+value hand | handValue <= 21 = handValue
+           | handValue > 21  = handValue - aceValue
     where
-        handValue = valueRank (rank card) + value hand
-        aceValue = numberOfAces (Add card hand) * 10
+        handValue = valueHand hand
+        aceValue  = numberOfAces hand * 10
+
+-- | Calculates the entire hand recursivly
+valueHand :: Hand -> Integer
+valueHand (Add card hand) = valueRank (rank card) + valueHand hand
+valueHand _               = 0
+
 
 -- | Translates the rank to its value.
 valueRank :: Rank -> Integer
@@ -42,12 +50,12 @@ numberOfAces (Add card hand) | rank card == Ace = 1 + numberOfAces hand
 
 -- | Checks if the hands value is above 21
 gameOver :: Hand -> Bool
-gameOver hand = value hand > 21 
+gameOver hand = value hand > 21
 
 -- | Checks which hand is highest value and not over 21.
 -- Take the hands in order Guest -> Bank.
 winner :: Hand -> Hand -> Player
-winner guest bank  | gameOver guest = Bank
-                   | gameOver bank = Guest
+winner guest bank  | gameOver guest           = Bank
+                   | gameOver bank            = Guest
                    | value guest > value bank = Guest
-                   | otherwise = Bank
+                   | otherwise                = Bank
