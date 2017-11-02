@@ -1,12 +1,15 @@
 module BlackJack where
 import           Cards
 import           RunGame
+import           System.Random
+import           Test.QuickCheck
 
 -- | Hands for testing
-hand1 = Add (Card King Spades) (Add (Card Ace Clubs) empty)
-hand2 = Add (Card King Hearts) hand1
-hand3 = Add (Card Ace Hearts) hand2
-
+hand1 = Add (Card (Numeric 2) Spades) (Add (Card (Numeric 3) Clubs) empty)
+hand2 = Add (Card (Numeric 5) Hearts) empty
+hand3 = Add (Card (Numeric 4) Hearts) hand5
+hand4 = Add (Card (Numeric 6) Spades) (Add (Card (Numeric 7) Clubs) empty)
+hand5 = Add (Card (Numeric 5) Hearts) hand4
 -- | Returns an empty hand
 empty :: Hand
 empty = Empty
@@ -49,3 +52,62 @@ winner guest bank  | gameOver guest           = Bank
                    | gameOver bank            = Guest
                    | value guest > value bank = Guest
                    | otherwise                = Bank
+
+-- | Keeps the order and places the first hand on top of the second one.
+(<+) :: Hand -> Hand -> Hand
+Empty <+ bottom = bottom
+top <+ bottom   = top' ~+ bottom
+     where top' = flipHand top
+
+-- | Adds one hand to another. (Reverses order of first hand)
+-- Takes first card from first argument and puts it on top of the second
+-- until all cards in the first argument is in the second.
+(~+) :: Hand -> Hand -> Hand
+(Add card hand) ~+ targetHand = hand ~+ Add card targetHand
+_ ~+ targetHand               = targetHand
+
+-- | Reverses the order of cards.
+flipHand :: Hand -> Hand
+flipHand hand = hand ~+ Empty
+
+-- | quickCheck test method for <+.
+prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
+prop_onTopOf_assoc p1 p2 p3 =
+    p1<+(p2<+p3) == (p1<+p2)<+p3
+
+
+{-
+prop_size_onTopOf :: Hand -> Hand -> Bool
+
+
+fullDeck :: Hand
+
+draw :: Hand -> Hand -> (Hand,Hand)
+
+-- error "draw: The deck is empty."
+
+
+first :: (a, b) -> a
+first (x,y) = x
+
+
+playBank :: Hand -> Hand
+
+
+-- playBank' deck bankHand ... ...
+-- where (deck′,bankHand′) = draw deck bankHand
+
+
+shuffle :: StdGen -> Hand -> Hand
+
+
+twoRandomIntegers :: StdGen -> (Integer,Integer)
+twoRandomIntegers g = (n1, n2)
+  where (n1, g1) = randomR (0, 10) g
+        (n2, g2) = randomR (0, 10) g1
+
+
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
+prop_shuffle_sameCards g c h =
+    c `belongsTo` h == c `belongsTo` shuffle g h
+-}
