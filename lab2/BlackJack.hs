@@ -7,7 +7,6 @@ hand1 = Add (Card (Numeric 2) Spades) (Add (Card Ace Clubs) empty)
 hand2 = Add (Card Ace Hearts) hand1
 hand3 = Add (Card Ace Hearts) hand2
 
-
 -- | Returns an empty hand
 empty :: Hand
 empty = Empty
@@ -27,20 +26,11 @@ valueHand :: Hand -> Integer
 valueHand (Add card hand) = valueRank (rank card) + valueHand hand
 valueHand _               = 0
 
-
 -- | Translates the rank to its value.
 valueRank :: Rank -> Integer
 valueRank Ace             = 11
 valueRank (Numeric value) = value
 valueRank _               = 10
-
-{-
-valueRank :: Rank -> Integer
-valueRank r
-	| r == Ace = 11
-	| r == Numeric value = value
-	| otherwise = 10
--}
 
 -- | Recursivly counts all aces in the given hand.
 numberOfAces :: Hand -> Integer
