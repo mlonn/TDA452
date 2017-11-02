@@ -1,6 +1,7 @@
 module BlackJack where
 import           Cards
 import           RunGame
+import           System.Random
 
 -- | Hands for testing
 hand1 = Add (Card King Spades) (Add (Card Ace Clubs) empty)
@@ -49,3 +50,47 @@ winner guest bank  | gameOver guest           = Bank
                    | gameOver bank            = Guest
                    | value guest > value bank = Guest
                    | otherwise                = Bank
+
+
+(<+) :: Hand -> Hand -> Hand
+
+
+prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
+prop_onTopOf_assoc p1 p2 p3 =
+    p1<+(p2<+p3) == (p1<+p2)<+p3
+
+
+
+prop_size_onTopOf :: Hand -> Hand -> Bool
+
+
+fullDeck :: Hand
+
+draw :: Hand -> Hand -> (Hand,Hand)
+
+-- error "draw: The deck is empty."
+
+
+first :: (a, b) -> a
+first (x,y) = x
+
+
+playBank :: Hand -> Hand
+
+
+-- playBank' deck bankHand ... ...
+-- where (deck′,bankHand′) = draw deck bankHand
+
+
+shuffle :: StdGen -> Hand -> Hand
+
+
+twoRandomIntegers :: StdGen -> (Integer,Integer)
+twoRandomIntegers g = (n1, n2)
+  where (n1, g1) = randomR (0, 10) g
+        (n2, g2) = randomR (0, 10) g1
+
+
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
+prop_shuffle_sameCards g c h =
+    c `belongsTo` h == c `belongsTo` shuffle g h
