@@ -3,8 +3,8 @@ import           Cards
 import           RunGame
 
 -- | Hands for testing
-hand1 = Add (Card (Numeric 2) Spades) (Add (Card Ace Clubs) empty)
-hand2 = Add (Card Ace Hearts) hand1
+hand1 = Add (Card King Spades) (Add (Card Ace Clubs) empty)
+hand2 = Add (Card King Hearts) hand1
 hand3 = Add (Card Ace Hearts) hand2
 
 -- | Returns an empty hand
