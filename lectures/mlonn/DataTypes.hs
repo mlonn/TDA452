@@ -9,23 +9,31 @@ during the lecture.
 -}
 
 -- | Every card has a suit:  ♠ ♥ ♦ ♣
---data Suit
+data Suit = Spades | Hearts | Diamonds | Clubs
+            deriving Show
 
 
---data Colour
+data Colour = Black | Red
+            deriving Show
 
 -- | Each suit has a colour – red or black
---colour :: Suit -> Colour
+colour :: Suit -> Colour
+colour Spades = Black
+colour Clubs  = Black
+colour _      = Red
 
 
 
--- | Cards have ranks: 2, 3 .. 10, Jack, Queen, King, Ace
---data Rank
+data Rank = Numeric Int | Jack | Queen | King | Ace
+            deriving Show
 
 --all_ranks
 
 -- | When does one rank beat another rank?
---rankBeats :: Rank -> Rank -> Bool
+rankBeats :: Rank -> Rank -> Bool
+rankBeats _ Ace  = False
+rankBeats Ace _  = True
+rankBeats _ King = False
 
 
 
