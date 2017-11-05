@@ -85,13 +85,15 @@ prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
 fullDeck :: Hand
-fullDeck = fullSuit Spades <+ fullSuit Hearts 
-            <+ fullSuit Clubs <+ fullSuit Diamonds
+fullDeck = foldr ((<+) . fullSuit) Empty suits
+    where suits = [Hearts, Spades, Diamonds, Clubs]
 
 fullSuit :: Suit -> Hand
-fullSuit suit = Add (Card Ace suit) empty
+fullSuit suit = foldr Add Empty cards
+    where 
+        ranks = [Numeric val | val <- [1..10]] ++ [Jack, Queen, King, Ace]
+        cards = [Card r suit | r <- ranks]
 
-ranks = [Numeric value | value <- [1..10]] ++ [Jack, Queen, King, Ace]
 {-
 draw :: Hand -> Hand -> (Hand,Hand)
 
