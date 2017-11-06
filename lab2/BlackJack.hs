@@ -102,10 +102,14 @@ draw deck hand | deck == Empty = error "draw: The deck is empty."
         Add card deck' = deck
 
 prop_draw :: Hand -> Hand -> Property
-prop_draw deck hand = deck /= Empty ==> size deck - 1 == size deck' && 
-                        size hand + 1 == size hand'
+prop_draw deck hand = deck /= Empty ==> 
+                        size deck - 1 == size deck' && 
+                        size hand + 1 == size hand' && 
+                        deckTopCard == handTopCard
         where
             (deck', hand') = draw deck hand
+            Add deckTopCard deckRemainder = deck
+            Add handTopCard handRemainder = hand'
         
 {-
 
