@@ -121,22 +121,27 @@ playBank' deck bankHand | valueHand bankHand' < 16 = playBank' deck' bankHand'
                         | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
     
-shuffle :: StdGen -> Hand -> Hand    
+pickCard :: Integer -> Hand -> Card 
+pickCard n deck  | deck == Empty = error "draw: The deck is empty."
+                 | n > size deck = error "deck has less cards than n"
+                 | otherwise = pickCard' n Empty deck
+
+pickCard' :: Integer -> Hand -> Hand -> Card
+pickCard' n stack deck | n == size stack = stackCard
+                       | otherwise = pickCard' n (Add deckCard stack) deck'
+            where 
+                Add deckCard deck' = deck
+                Add stackCard stack' = stack
+                
     
     
     
     
     
-{-
-
-
-
-
-twoRandomIntegers :: StdGen -> (Integer,Integer)
-twoRandomIntegers g = (n1, n2)
-  where (n1, g1) = randomR (0, 10) g
-        (n2, g2) = randomR (0, 10) g1
-
+    
+    
+    
+    {-
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
