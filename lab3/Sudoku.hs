@@ -78,33 +78,22 @@ isFilled sudoku = all (all isJust) (rows sudoku)
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
 printSudoku :: Sudoku -> IO ()
-printSudoku sudoku = putStr (foldr hLine makeHLine (listToTriple (map (formatRow . listToTriple) (rows sudoku))))
+printSudoku sudoku =  putStr $ concRows $ map formatRow $ rows sudoku
 
-hLine :: (String, String, String) -> String -> String
-hLine (l1, l2, l3) start = start ++ l1 ++ "\n" ++ l2 ++ "\n" ++ l3 ++ "\n" ++ makeHLine
+formatRow :: [Maybe Int] -> String
+formatRow [] = "|\n"
+formatRow (x:y:z:xs) = concat ["| ", toStr x, toStr y, toStr z, formatRow xs]
 
-formatRow :: [(Maybe Int, Maybe Int, Maybe Int)] -> String
-formatRow = foldr (\ x -> (++) [ '|', ' ', formatCell (fst3 x), ' ', formatCell (mid3 x), ' ', formatCell (lst3 x), ' ']) "|"
+toStr :: Maybe Int -> String
+toStr Nothing = ". "
+toStr (Just num) = show num ++ " "
 
-fst3 :: (a, a, a) -> a
-fst3 (a, _, _) = a
+hLine :: String
+hLine = concat $ replicate 3 ("+" ++ replicate 7 '-') ++ ["+\n"]
 
-mid3 :: (a, a, a) -> a
-mid3 (_, b, _) = b
-
-lst3 :: (a, a, a) -> a
-lst3 (_, _, c) = c
-
-listToTriple :: [a] -> [(a, a, a)]
-listToTriple [] = []
-listToTriple (x:y:z:xs) = (x, y, z) : listToTriple xs
-
-makeHLine :: String
-makeHLine = concat (replicate 3 ("+" ++ replicate 7 '-')) ++ "+\n"
-
-formatCell :: Maybe Int -> Char
-formatCell Nothing  = '.'
-formatCell (Just a) = intToDigit a
+concRows :: [String] -> String
+concRows [] = hLine
+concRows (x:y:z:xs) = concat [ hLine, x , y, z, concRows xs ]
 
 -- * B2
 
