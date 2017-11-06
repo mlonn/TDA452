@@ -107,24 +107,29 @@ prop_draw deck hand = deck /= Empty ==>
                         size hand + 1 == size hand' && 
                         deckTopCard == handTopCard
         where
-            (deck', hand') = draw deck hand
+            (deck', hand')                = draw deck hand
             Add deckTopCard deckRemainder = deck
             Add handTopCard handRemainder = hand'
         
-{-
-
-first :: (a, b) -> a
-first (x,y) = x
-
 
 playBank :: Hand -> Hand
+playBank deck | deck == Empty = error "draw: The deck is empty."
+              | otherwise     = playBank' deck Empty
+
+playBank' :: Hand -> Hand -> Hand
+playBank' deck bankHand | valueHand bankHand' < 16 = playBank' deck' bankHand'
+                        | otherwise = bankHand'
+    where (deck',bankHand') = draw deck bankHand
+    
+shuffle :: StdGen -> Hand -> Hand    
+    
+    
+    
+    
+    
+{-
 
 
--- playBank' deck bankHand ... ...
--- where (deck′,bankHand′) = draw deck bankHand
-
-
-shuffle :: StdGen -> Hand -> Hand
 
 
 twoRandomIntegers :: StdGen -> (Integer,Integer)
