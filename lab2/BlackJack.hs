@@ -91,7 +91,7 @@ fullDeck = foldr ((<+) . fullSuit) Empty suits
 fullSuit :: Suit -> Hand
 fullSuit suit = foldr Add Empty cards
     where 
-        ranks = [Numeric val | val <- [1..10]] ++ [Jack, Queen, King, Ace]
+        ranks = [Numeric val | val <- [2..10]] ++ [Jack, Queen, King, Ace]
         cards = [Card r suit | r <- ranks]
 
 {-
