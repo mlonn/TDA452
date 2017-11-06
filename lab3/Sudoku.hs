@@ -1,10 +1,12 @@
 
 import Test.QuickCheck
+import Data.Maybe
+import Data.Char
 
 -------------------------------------------------------------------------
 
 -- | Representation of sudoku puzzlese (allows some junk)
-data Sudoku = Sudoku { rows :: [[Maybe Int]] }
+newtype Sudoku = Sudoku { rows :: [[Maybe Int]] }
  deriving ( Show, Eq )
 
 -- | A sample sudoku puzzle
@@ -25,25 +27,49 @@ example =
     n = Nothing
     j = Just
 
+example1 :: Sudoku
+example1 =
+    Sudoku
+      [ [j 3,j 6,j 5  ,j 5  ,j 7,j 1,j 2,j 5  ,j 5  ]
+      , [j 5  ,j 5,j 5  ,j 5  ,j 5  ,j 5  ,j 1,j 8,j 5  ]
+      , [j 5  ,j 5  ,j 9,j 2,j 5  ,j 4,j 7,j 5  ,j 5  ]
+      , [j 5  ,j 5  ,j 5  ,j 5  ,j 1,j 3,j 5  ,j 2,j 8]
+      , [j 4,j 5  ,j 5  ,j 5,j 5  ,j 2,j 5  ,j 5  ,j 9]
+      , [j 2,j 7,j 5  ,j 4,j 6,j 5  ,j 5  ,j 5  ,j 5  ]
+      , [j 5  ,j 5  ,j 5,j 3,j 5  ,j 8,j 9,j 5  ,j 5  ]
+      , [j 5  ,j 8,j 3,j 5  ,j 5  ,j 5  ,j 5  ,j 6,j 5  ]
+      , [j 5  ,j 5  ,j 7,j 6,j 9,j 5  ,j 5  ,j 4,j 3]
+      ]
+  where
+    n = Nothing
+    j = Just
+
 -- * A1
 
 -- | allBlankSudoku is a sudoku with just blanks
 allBlankSudoku :: Sudoku
-allBlankSudoku = undefined
+allBlankSudoku = Sudoku $ replicate 9 $ replicate 9 Nothing
 
 -- * A2
 
 -- | isSudoku sud checks if sud is really a valid representation of a sudoku
 -- puzzle
 isSudoku :: Sudoku -> Bool
-isSudoku = undefined
+isSudoku sudoku = length (rows sudoku) == 9 && all checkRow (rows sudoku)
 
--- * A3
+checkRow :: [Maybe Int] -> Bool
+checkRow row = length row == 9 && all checkCell row
+
+checkCell :: Maybe Int -> Bool
+checkCell (Just a) = a > 0 && a < 10
+checkCell Nothing  = True
+
+  -- * A3
 
 -- | isFilled sud checks if sud is completely filled in,
 -- i.e. there are no blanks
 isFilled :: Sudoku -> Bool
-isFilled = undefined
+isFilled sudoku = all (all isJust) (rows sudoku)
 
 -------------------------------------------------------------------------
 
@@ -52,7 +78,33 @@ isFilled = undefined
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
 printSudoku :: Sudoku -> IO ()
-printSudoku = undefined
+printSudoku sudoku = putStr (foldr hLine makeHLine (listToTriple (map (formatRow . listToTriple) (rows sudoku))))
+
+hLine :: (String, String, String) -> String -> String
+hLine (l1, l2, l3) start = start ++ l1 ++ "\n" ++ l2 ++ "\n" ++ l3 ++ "\n" ++ makeHLine
+
+formatRow :: [(Maybe Int, Maybe Int, Maybe Int)] -> String
+formatRow = foldr (\ x -> (++) [ '|', ' ', formatCell (fst3 x), ' ', formatCell (mid3 x), ' ', formatCell (lst3 x), ' ']) "|"
+
+fst3 :: (a, a, a) -> a
+fst3 (a, _, _) = a
+
+mid3 :: (a, a, a) -> a
+mid3 (_, b, _) = b
+
+lst3 :: (a, a, a) -> a
+lst3 (_, _, c) = c
+
+listToTriple :: [a] -> [(a, a, a)]
+listToTriple [] = []
+listToTriple (x:y:z:xs) = (x, y, z) : listToTriple xs
+
+makeHLine :: String
+makeHLine = concat (replicate 3 ("+" ++ replicate 7 '-')) ++ "+\n"
+
+formatCell :: Maybe Int -> Char
+formatCell Nothing  = '.'
+formatCell (Just a) = intToDigit a
 
 -- * B2
 
