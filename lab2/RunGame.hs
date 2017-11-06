@@ -35,7 +35,7 @@ gameLoop i deck guest =
        then finish i deck guest
        else do putStrLn "Draw another card? [y]"
                yn <- getLine
-               if null yn || not (map toLower yn == "n")
+               if null yn || (map toLower yn /= "n")
                  then do let (deck', guest') = iDraw i deck guest
                          gameLoop i deck' guest'
                  else finish i deck guest

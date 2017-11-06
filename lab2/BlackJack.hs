@@ -150,7 +150,7 @@ removeCard' n top bottom
 
 -- | Shuffles the cards in a given deck
 shuffleCards :: StdGen -> Hand -> Hand
-shuffleCards g deck = shuffle' g Empty deck
+shuffleCards g = shuffle' g Empty
 
 -- | Takes a random card from the source deck and adds it to a target deck
 --   until all cards have been removed from the source deck
