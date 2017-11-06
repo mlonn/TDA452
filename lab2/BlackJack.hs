@@ -17,9 +17,10 @@ empty = Empty
 -- | Find the value of a given hand.
 -- Aces will count as 11 if possible otherwise 1
 value :: Hand -> Integer
-value Empty                  = 0
-value hand | handValue <= 21 = handValue
-           | handValue > 21  = handValue - aceValue
+value Empty           = 0
+value hand 
+    | handValue <= 21 = handValue
+    | handValue > 21  = handValue - aceValue
     where
         handValue = valueHand hand
         aceValue  = numberOfAces hand * 10
@@ -37,9 +38,10 @@ valueRank _               = 10
 
 -- | Recursivly counts all aces in the given hand.
 numberOfAces :: Hand -> Integer
-numberOfAces Empty                              = 0
-numberOfAces (Add card hand) | rank card == Ace = 1 + numberOfAces hand
-                             | otherwise        = numberOfAces hand
+numberOfAces Empty     = 0
+numberOfAces (Add card hand) 
+    | rank card == Ace = 1 + numberOfAces hand
+    | otherwise        = numberOfAces hand
 
 -- | Checks if the hands value is above 21
 gameOver :: Hand -> Bool
@@ -64,17 +66,6 @@ winner guest bank
 Empty <+ bottom = bottom
 top <+ bottom   = Add card (hand <+ bottom)
    where (Add card hand) = top
-
--- | Adds one hand to another. (Reverses order of first hand)
--- Takes first card from first argument and puts it on top of the second
--- until all cards in the first argument is in the second.
-(~+) :: Hand -> Hand -> Hand
-(Add card hand) ~+ targetHand = hand ~+ Add card targetHand
-_ ~+ targetHand               = targetHand
-
--- | Reverses the order of cards.
-flipHand :: Hand -> Hand
-flipHand hand = hand ~+ Empty
 
 -- | QuickCheck test method for <+.
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
@@ -101,8 +92,9 @@ fullSuit suit = foldr Add Empty cards
 -- Arguments are given as the deck then hand and 
 -- returns them in the same order.
 draw :: Hand -> Hand -> (Hand,Hand)
-draw deck hand | deck == Empty = error "draw: The deck is empty."
-               | otherwise = (deck', Add card hand)
+draw deck hand 
+    | deck == Empty = error "draw: The deck is empty."
+    | otherwise = (deck', Add card hand)
     where 
         Add card deck' = deck
 
@@ -130,6 +122,13 @@ playBank' deck bankHand
         | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
     
+-- | Adds one hand to another. (Reverses order of first hand)
+-- Takes first card from first argument and puts it on top of the second
+-- until all cards in the first argument is in the second.
+(~+) :: Hand -> Hand -> Hand
+(Add card hand) ~+ targetHand = hand ~+ Add card targetHand
+_ ~+ targetHand               = targetHand
+
 -- | Removes card at position n from the deck.
 removeCard :: Integer -> Hand -> (Card, Hand) 
 removeCard n deck  
