@@ -76,7 +76,7 @@ _ ~+ targetHand               = targetHand
 flipHand :: Hand -> Hand
 flipHand hand = hand ~+ Empty
 
--- | quickCheck test method for <+.
+-- | QuickCheck test method for <+.
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
 prop_onTopOf_assoc p1 p2 p3 =
     p1<+(p2<+p3) == (p1<+p2)<+p3
@@ -106,7 +106,7 @@ draw deck hand | deck == Empty = error "draw: The deck is empty."
     where 
         Add card deck' = deck
 
--- | tests the size property of when drawing cards.
+-- | Tests the size property of when drawing cards.
 prop_draw :: Hand -> Hand -> Property
 prop_draw deck hand = deck /= Empty ==> 
                         size deck - 1 == size deck' && 
