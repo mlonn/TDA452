@@ -121,29 +121,40 @@ playBank' deck bankHand | valueHand bankHand' < 16 = playBank' deck' bankHand'
                         | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
     
-pickCard :: Integer -> Hand -> Card 
-pickCard n deck  | deck == Empty = error "draw: The deck is empty."
+removeCard :: Integer -> Hand -> (Card, Hand) 
+removeCard n deck  | deck == Empty = error "draw: The deck is empty."
                  | n > size deck = error "deck has less cards than n"
-                 | otherwise = pickCard' n Empty deck
+                 | otherwise = removeCard' n Empty deck
 
-pickCard' :: Integer -> Hand -> Hand -> Card
-pickCard' n stack deck | n == size stack = stackCard
-                       | otherwise = pickCard' n (Add deckCard stack) deck'
+removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
+removeCard' n stack deck | n == size stack = (stackCard , stack' <+ deck)
+                       | otherwise = removeCard' n (Add deckCard stack) deck'
             where 
                 Add deckCard deck' = deck
                 Add stackCard stack' = stack
-                
-    
-    
-    
-    
-    
-    
-    
-    
-    {-
+
+{-shuffle :: StdGen -> Hand -> Hand
+shuffle g hand = shuffle' g Empty hand
+
+shuffle' g target Empty = target
+shuffle' g target source | 
+    where 
+        Add 
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
     c `belongsTo` h == c `belongsTo` shuffle g h
--}
+
+belongsTo :: Card -> Hand -> Bool
+    c `belongsTo` Empty = False
+    c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+                
+  -}  
+    
+    
+    
+    
+    
+    
+
+
