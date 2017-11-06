@@ -130,14 +130,14 @@ playBank' deck bankHand
         | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
     
--- | removes card at position n from the deck.
+-- | Removes card at position n from the deck.
 removeCard :: Integer -> Hand -> (Card, Hand) 
 removeCard n deck  
         | deck == Empty = error "draw: The deck is empty."
         | n > size deck = error "deck has less cards than n"
         | otherwise = removeCard' n Empty deck
 
--- | moves card to from one hand to another untill you find the card to be
+-- | Moves card to from one hand to another until you find the card to be
 -- removed, then adds the two hands together
 -- keeps the order of the original deck.
 removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
@@ -152,8 +152,8 @@ removeCard' n top bottom
 shuffleCards :: StdGen -> Hand -> Hand
 shuffleCards g deck = shuffle' g Empty deck
 
--- | Takes a random card from the deck and adds it to a new hand
---   until all cars have been removed from the first hand
+-- | Takes a random card from the source deck and adds it to a target deck
+--   until all cards have been removed from the source deck
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g target Empty = target
 shuffle' g target source = shuffle' g' (Add card' target) source' 
@@ -161,10 +161,12 @@ shuffle' g target source = shuffle' g' (Add card' target) source'
         (nr, g') = randomR (1, size source) g
         (card', source') = removeCard nr source
 
+-- | Checks that the cards are the same after shuffle.
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
     c `belongsTo` h == c `belongsTo` shuffleCards g h
 
+-- | Checks for a card in a deck.
 belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h 
@@ -173,6 +175,8 @@ c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
 prop_size_shuffle :: StdGen -> Hand -> Bool
 prop_size_shuffle g deck = size deck == size (shuffleCards g deck)
 
+
+-- | Defines what functions should be callable.
 implementation = Interface
     { iEmpty    = empty
     , iFullDeck = fullDeck
@@ -184,5 +188,6 @@ implementation = Interface
     , iShuffle  = shuffleCards
     }
 
+-- | Run a new game round.
 main :: IO ()
 main = runGame implementation
