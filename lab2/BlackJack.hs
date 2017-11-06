@@ -85,13 +85,15 @@ prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
 fullDeck :: Hand
-fullDeck = fullSuit Spades <+ fullSuit Hearts 
+fullDeck = fullSuit Spades <+ fullSuit Hearts
             <+ fullSuit Clubs <+ fullSuit Diamonds
 
 fullSuit :: Suit -> Hand
-fullSuit suit = Add (Card Ace suit) empty
+fullSuit suit   = mergeHands [Add (Card rank suit) Empty | rank <- [Numeric value | value <- [2..10]] ++ [Jack, Queen, King, Ace]]
 
-ranks = [Numeric value | value <- [1..10]] ++ [Jack, Queen, King, Ace]
+mergeHands :: [Hand] -> Hand
+mergeHands []   = Empty
+mergeHands (x:xs) = x <+ (mergeHands xs)
 {-
 draw :: Hand -> Hand -> (Hand,Hand)
 
