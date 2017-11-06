@@ -95,41 +95,69 @@ fullSuit suit = foldr Add Empty cards
         ranks = [Numeric val | val <- [2..10]] ++ [Jack, Queen, King, Ace]
         cards = [Card r suit | r <- ranks]
 
--- | Given a deck and a hand, take the top card and put it in the hand.
--- Then return a tuple with remaining deck and new hand in that order.
+
 draw :: Hand -> Hand -> (Hand,Hand)
-draw Empty _ = error "draw: The deck is empty."
-draw (Add card deck) hand =  (deck, Add card hand)
+draw deck hand | deck == Empty = error "draw: The deck is empty."
+               | otherwise = (deck', Add card hand)
+    where 
+        Add card deck' = deck
+
+prop_draw :: Hand -> Hand -> Property
+prop_draw deck hand = deck /= Empty ==> 
+                        size deck - 1 == size deck' && 
+                        size hand + 1 == size hand' && 
+                        deckTopCard == handTopCard
+        where
+            (deck', hand')                = draw deck hand
+            Add deckTopCard deckRemainder = deck
+            Add handTopCard handRemainder = hand'
+        
 
 playBank :: Hand -> Hand
-playBank deck = playBank' deck empty
+playBank deck 
+        | deck == Empty = error "draw: The deck is empty."
+        | otherwise     = playBank' deck Empty
 
 playBank' :: Hand -> Hand -> Hand
 playBank' deck bankHand 
-        | valueHand bankHand < 16 = playBank' deck' bankHand'
-        | otherwise = bankHand'
+        | valueHand bankHand' < 16 = playBank' deck' bankHand'
+        | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
-
-removeCard :: Integer -> Hand -> (Card, Hand)
-removeCard n deck = removeCard' n Empty deck
+    
+removeCard :: Integer -> Hand -> (Card, Hand) 
+removeCard n deck  
+        | deck == Empty = error "draw: The deck is empty."
+        | n > size deck = error "deck has less cards than n"
+        | otherwise = removeCard' n Empty deck
 
 removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
-removeCard' n top bottom
-        | n == 1 = (card', top ~+ bottom')
-        | n > 1  = removeCard' (n-1) (Add card' top) bottom'  
+removeCard' n top bottom 
+        | n == 1 = (card' , top ~+ bottom')
+        | otherwise = removeCard' (n-1) (Add card' top) bottom'
     where (Add card' bottom') = bottom
-    
-{-
-shuffle :: StdGen -> Hand -> Hand
+                
+{-shuffle :: StdGen -> Hand -> Hand
+shuffle g hand = shuffle' g Empty hand
 
-
-twoRandomIntegers :: StdGen -> (Integer,Integer)
-twoRandomIntegers g = (n1, n2)
-  where (n1, g1) = randomR (0, 10) g
-        (n2, g2) = randomR (0, 10) g1
-
+shuffle' g target Empty = target
+shuffle' g target source | 
+    where 
+        Add 
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
     c `belongsTo` h == c `belongsTo` shuffle g h
--}
+
+belongsTo :: Card -> Hand -> Bool
+    c `belongsTo` Empty = False
+    c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
+                
+  -}  
+    
+    
+    
+    
+    
+    
+
+
