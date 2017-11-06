@@ -133,31 +133,43 @@ removeCard n deck
 removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
 removeCard' n top bottom 
         | n == 1 = (card' , top ~+ bottom')
+        | n < 1 = error "removeCard: Can't remove <1 card"
+        | n > size bottom = error "removeCard: Not that many cards in deck"
         | otherwise = removeCard' (n-1) (Add card' top) bottom'
     where (Add card' bottom') = bottom
-                
-{-shuffle :: StdGen -> Hand -> Hand
-shuffle g hand = shuffle' g Empty hand
 
+    
+shuffleCards :: StdGen -> Hand -> Hand
+shuffleCards g deck = shuffle' g Empty deck
+
+shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g target Empty = target
-shuffle' g target source | 
+shuffle' g target source = shuffle' g' (Add card' target) source' 
     where 
-        Add 
+        (nr, g') = randomR (1, size source) g
+        (card', source') = removeCard nr source
 
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
-    c `belongsTo` h == c `belongsTo` shuffle g h
+    c `belongsTo` h == c `belongsTo` shuffleCards g h
 
 belongsTo :: Card -> Hand -> Bool
-    c `belongsTo` Empty = False
-    c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
-                
-  -}  
-    
-    
-    
-    
-    
-    
+c `belongsTo` Empty = False
+c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h 
 
+prop_size_shuffle :: StdGen -> Hand -> Bool
+prop_size_shuffle g deck = size deck == size (shuffleCards g deck)
 
+implementation = Interface
+    { iEmpty    = empty
+    , iFullDeck = fullDeck
+    , iValue    = value
+    , iGameOver = gameOver
+    , iWinner   = winner 
+    , iDraw     = draw
+    , iPlayBank = playBank
+    , iShuffle  = shuffleCards
+    }
+
+main :: IO ()
+main = runGame implementation
