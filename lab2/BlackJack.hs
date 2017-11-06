@@ -94,11 +94,20 @@ fullSuit suit = foldr Add Empty cards
         ranks = [Numeric val | val <- [2..10]] ++ [Jack, Queen, King, Ace]
         cards = [Card r suit | r <- ranks]
 
-{-
+
 draw :: Hand -> Hand -> (Hand,Hand)
+draw deck hand | deck == Empty = error "draw: The deck is empty."
+               | otherwise = (deck', Add card hand)
+    where 
+        Add card deck' = deck
 
--- error "draw: The deck is empty."
-
+prop_draw :: Hand -> Hand -> Property
+prop_draw deck hand = deck /= Empty ==> size deck - 1 == size deck' && 
+                        size hand + 1 == size hand'
+        where
+            (deck', hand') = draw deck hand
+        
+{-
 
 first :: (a, b) -> a
 first (x,y) = x
