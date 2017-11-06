@@ -124,12 +124,16 @@ playBank' deck bankHand
         | otherwise = bankHand'
     where (deck',bankHand') = draw deck bankHand
     
+-- | removes card at position n from the deck.
 removeCard :: Integer -> Hand -> (Card, Hand) 
 removeCard n deck  
         | deck == Empty = error "draw: The deck is empty."
         | n > size deck = error "deck has less cards than n"
         | otherwise = removeCard' n Empty deck
 
+-- | moves card to from one hand to another untill you find the card to be
+-- removed, then adds the two hands together
+-- keeps the order of the original deck.
 removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
 removeCard' n top bottom 
         | n == 1 = (card' , top ~+ bottom')
@@ -138,10 +142,12 @@ removeCard' n top bottom
         | otherwise = removeCard' (n-1) (Add card' top) bottom'
     where (Add card' bottom') = bottom
 
-    
+-- | Shuffles the cards in a given deck
 shuffleCards :: StdGen -> Hand -> Hand
 shuffleCards g deck = shuffle' g Empty deck
 
+-- | Takes a random card from the deck and adds it to a new hand
+--   until all cars have been removed from the first hand
 shuffle' :: StdGen -> Hand -> Hand -> Hand
 shuffle' g target Empty = target
 shuffle' g target source = shuffle' g' (Add card' target) source' 
@@ -157,6 +163,7 @@ belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h 
 
+-- | Checks that the deck has the same size befor and after shuffle
 prop_size_shuffle :: StdGen -> Hand -> Bool
 prop_size_shuffle g deck = size deck == size (shuffleCards g deck)
 
