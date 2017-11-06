@@ -81,27 +81,32 @@ prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
 prop_onTopOf_assoc p1 p2 p3 =
     p1<+(p2<+p3) == (p1<+p2)<+p3
 
-
+-- | tests the size property when using <+ operator 
 prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
+-- | Generates a full deck of 52 unique cards.
 fullDeck :: Hand
 fullDeck = foldr ((<+) . fullSuit) Empty suits
     where suits = [Hearts, Spades, Diamonds, Clubs]
 
+-- | Given a suit it will generate a hand with all cards from that suit.
 fullSuit :: Suit -> Hand
 fullSuit suit = foldr Add Empty cards
     where 
         ranks = [Numeric val | val <- [2..10]] ++ [Jack, Queen, King, Ace]
         cards = [Card r suit | r <- ranks]
 
-
+-- | Draws a single card from a deck and adds it to a hand.
+-- Arguments are given as the deck then hand and 
+-- returns them in the same order.
 draw :: Hand -> Hand -> (Hand,Hand)
 draw deck hand | deck == Empty = error "draw: The deck is empty."
                | otherwise = (deck', Add card hand)
     where 
         Add card deck' = deck
 
+-- | tests the size property of when drawing cards.
 prop_draw :: Hand -> Hand -> Property
 prop_draw deck hand = deck /= Empty ==> 
                         size deck - 1 == size deck' && 
@@ -112,12 +117,13 @@ prop_draw deck hand = deck /= Empty ==>
             Add deckTopCard deckRemainder = deck
             Add handTopCard handRemainder = hand'
         
-
+-- | Wrapper to let the bank draw cards.
 playBank :: Hand -> Hand
 playBank deck 
         | deck == Empty = error "draw: The deck is empty."
         | otherwise     = playBank' deck Empty
 
+-- | Draws cards from a deck to a hand until that hand has a value of > 16
 playBank' :: Hand -> Hand -> Hand
 playBank' deck bankHand 
         | valueHand bankHand' < 16 = playBank' deck' bankHand'
