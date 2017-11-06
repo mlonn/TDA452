@@ -48,10 +48,11 @@ gameOver hand = value hand > 21
 -- | Checks which hand is highest value and not over 21.
 -- Take the hands in order Guest -> Bank.
 winner :: Hand -> Hand -> Player
-winner guest bank  | gameOver guest           = Bank
-                   | gameOver bank            = Guest
-                   | value guest > value bank = Guest
-                   | otherwise                = Bank
+winner guest bank  
+    | gameOver guest           = Bank
+    | gameOver bank            = Guest
+    | value guest > value bank = Guest
+    | otherwise                = Bank
 
 -- | Keeps the order and places the first hand on top of the second one.
 -- (<+) :: Hand -> Hand -> Hand
@@ -91,26 +92,34 @@ fullDeck = foldr ((<+) . fullSuit) Empty suits
 fullSuit :: Suit -> Hand
 fullSuit suit = foldr Add Empty cards
     where 
-        ranks = [Numeric val | val <- [1..10]] ++ [Jack, Queen, King, Ace]
+        ranks = [Numeric val | val <- [2..10]] ++ [Jack, Queen, King, Ace]
         cards = [Card r suit | r <- ranks]
 
-{-
+-- | Given a deck and a hand, take the top card and put it in the hand.
+-- Then return a tuple with remaining deck and new hand in that order.
 draw :: Hand -> Hand -> (Hand,Hand)
-
--- error "draw: The deck is empty."
-
-
-first :: (a, b) -> a
-first (x,y) = x
-
+draw Empty _ = error "draw: The deck is empty."
+draw (Add card deck) hand =  (deck, Add card hand)
 
 playBank :: Hand -> Hand
+playBank deck = playBank' deck empty
 
+playBank' :: Hand -> Hand -> Hand
+playBank' deck bankHand 
+        | valueHand bankHand < 16 = playBank' deck' bankHand'
+        | otherwise = bankHand'
+    where (deck',bankHand') = draw deck bankHand
 
--- playBank' deck bankHand ... ...
--- where (deck′,bankHand′) = draw deck bankHand
+removeCard :: Integer -> Hand -> (Card, Hand)
+removeCard n deck = removeCard' n Empty deck
 
-
+removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
+removeCard' n top bottom
+        | n == 1 = (card', top ~+ bottom')
+        | n > 1  = removeCard' (n-1) (Add card' top) bottom'  
+    where (Add card' bottom') = bottom
+    
+{-
 shuffle :: StdGen -> Hand -> Hand
 
 
