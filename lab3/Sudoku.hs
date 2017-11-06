@@ -100,7 +100,23 @@ concRows (x:y:z:xs) = concat [ hLine, x , y, z, concRows xs ]
 -- | readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
 readSudoku :: FilePath -> IO Sudoku
-readSudoku = undefined
+readSudoku path = do 
+  content <- readFile path
+  checkFormat $ Sudoku $ map makeCell $ lines content
+  
+checkFormat :: Sudoku -> IO Sudoku
+checkFormat sudoku 
+  | isSudoku sudoku = return sudoku
+  | otherwise       = error "Isn't a Sudoku"
+
+makeCell :: String -> [Maybe Int]
+makeCell = map parseSudoku
+
+parseSudoku :: Char -> Maybe Int
+parseSudoku '.' = Nothing
+parseSudoku char 
+    | isDigit char = Just (digitToInt char)
+    | otherwise = Just 0
 
 -------------------------------------------------------------------------
 
