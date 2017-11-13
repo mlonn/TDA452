@@ -202,20 +202,11 @@ isOkay sudoku = all isOkayBlock $ blocks sudoku
 type Pos = (Int,Int)
 
 blanks :: Sudoku -> [Pos]
-<<<<<<< HEAD
-blanks sudoku = filter (\x isNothing sudoku) pos
-  where pos = [(x,y) | x <- [0..8], y <- [0..8]]
-
-(!!?):: Sudoku -> Pos -> Maybe Int
-(!!?) sudoku (x,y) = rows sudoku !! x !! y
-    
-=======
 blanks sudoku = filter (\x -> isNothing (sudoku !!? x)) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
 (!!?) :: Sudoku -> Pos -> Maybe Int
 (!!?) sudoku (x, y) = rows sudoku !! x !! y
->>>>>>> 07d1664e10e1a489518f35579bf60e317d4593e8
 
 -----------------------------------------------------------------------------
 -- * E2 
