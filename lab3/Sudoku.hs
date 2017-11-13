@@ -186,11 +186,14 @@ isOkay sudoku = all isOkayBlock $ blocks sudoku
 type Pos = (Int,Int)
 
 blanks :: Sudoku -> [Pos]
-blanks sudoku = filter (isBlank sudoku) pos
+blanks sudoku = filter (\x isNothing sudoku) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
-isBlank :: Sudoku -> Pos -> Bool
-isBlank sudoku pos = (((rows sudoku) !! (fst pos)) !! (snd pos)) == Nothing
+(!!?):: Sudoku -> Pos -> Maybe Int
+(!!?) sudoku (x,y) = rows sudoku !! x !! y
+    
 
--- * E2 
 -----------------------------------------------------------------------------
+-- * E2 
+(!!=) :: [a] -> (Int,a) -> [a]
+(!!=) list (index, value) = take index list ++ [value] ++ drop (index + 1) list  
