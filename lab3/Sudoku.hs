@@ -1,9 +1,12 @@
+module Main where
 
 import Test.QuickCheck
 import Data.Maybe
 import Data.Char
+import Data.List
+-----------------------------------------------------------------------------
 
--------------------------------------------------------------------------
+main = quickCheck prop_SolveSound
 
 -- | Representation of sudoku puzzlese (allows some junk)
 newtype Sudoku = Sudoku { rows :: [[Maybe Int]] }
@@ -71,18 +74,20 @@ checkCell Nothing  = True
 isFilled :: Sudoku -> Bool
 isFilled sudoku = all (all isJust) (rows sudoku)
 
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- * B1
 
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
+
 printSudoku :: Sudoku -> IO ()
 printSudoku sudoku =  putStr $ concRows $ map formatRow $ rows sudoku
 
 formatRow :: [Maybe Int] -> String
 formatRow [] = "|\n"
-formatRow (x:y:z:xs) = concat ["| ", toStr x, toStr y, toStr z, formatRow xs]
+formatRow row = concat ["| ", concatMap toStr first3, formatRow rest]
+  where (first3, rest) = splitAt 3 row
 
 toStr :: Maybe Int -> String
 toStr Nothing = ". "
@@ -93,7 +98,8 @@ hLine = concat $ replicate 3 ("+" ++ replicate 7 '-') ++ ["+\n"]
 
 concRows :: [String] -> String
 concRows [] = hLine
-concRows (x:y:z:xs) = concat [ hLine, x , y, z, concRows xs ]
+concRows rows' = concat [ hLine, concat first3, concRows rest ]
+  where (first3, rest) = splitAt 3 rows'
 
 -- * B2
 
@@ -102,37 +108,17 @@ concRows (x:y:z:xs) = concat [ hLine, x , y, z, concRows xs ]
 readSudoku :: FilePath -> IO Sudoku
 readSudoku path = do 
   content <- readFile path
-  checkFormat $ Sudoku $ map makeCell $ lines content
+  checkFormat $ Sudoku $ map (map parseChar) $ lines content
   
 checkFormat :: Sudoku -> IO Sudoku
 checkFormat sudoku 
   | isSudoku sudoku = return sudoku
   | otherwise       = error "Isn't a Sudoku"
 
-makeCell :: String -> [Maybe Int]
-makeCell = map parseSudoku
-
-parseSudoku :: Char -> Maybe Int
-parseSudoku '.' = Nothing
-parseSudoku char 
+parseChar :: Char -> Maybe Int
+parseChar '.' = Nothing
+parseChar char 
     | isDigit char = Just (digitToInt char)
     | otherwise = Just 0
 
--------------------------------------------------------------------------
-
--- * C1
-
--- | cell generates an arbitrary cell in a Sudoku
-cell :: Gen (Maybe Int)
-cell = undefined
-
-
--- * C2
-
--- | an instance for generating Arbitrary Sudokus
-instance Arbitrary Sudoku where
-  arbitrary =
-    do rows <- vectorOf 9 (vectorOf 9 cell)
-       return (Sudoku rows)
-
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------
