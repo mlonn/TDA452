@@ -2,6 +2,8 @@
 import Test.QuickCheck
 import Data.Maybe
 import Data.Char
+import Data.List
+
 
 -------------------------------------------------------------------------
 
@@ -124,8 +126,10 @@ parseSudoku char
 
 -- | cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
-cell = undefined
-
+cell = frequency
+        [(9, return Nothing),
+        (1, do n <- choose(1,9)
+               return (Just n))]
 
 -- * C2
 
@@ -135,4 +139,57 @@ instance Arbitrary Sudoku where
     do rows <- vectorOf 9 (vectorOf 9 cell)
        return (Sudoku rows)
 
+-- * C3
+prop_Sudoku :: Sudoku -> Bool
+prop_Sudoku sudoku = isSudoku sudoku
 -------------------------------------------------------------------------
+
+-- * D1
+
+type Block = [Maybe Int]
+
+isOkayBlock :: Block -> Bool
+isOkayBlock block = isDuplicate block []
+
+isDuplicate :: Block -> Block -> Bool
+isDuplicate [] found = True
+isDuplicate (x:xs) found | elem x found = False
+                         | x == Nothing = isDuplicate xs found
+                         | otherwise    = isDuplicate xs (x:found)
+
+-- * D2
+
+blocks :: Sudoku -> [Block]
+blocks sudoku = concat [rows sudoku, 
+                        transpose $ rows sudoku,
+                        makeBlocks sudoku]
+
+makeBlocks :: Sudoku -> [Block]
+makeBlocks sudoku = concat[merge(map (take 3) (rows sudoku)),
+                           merge(map (take 3) (map (drop 3) (rows sudoku))),
+                           merge(map (drop 6) (rows sudoku))]
+
+merge :: [Block] -> [Block]
+merge blocks | length blocks > 0 =  concat (take 3 (blocks)):
+                                          merge (drop 3 blocks)
+merge blocks | otherwise = []
+                 
+prop_Blocks :: Sudoku -> Bool
+prop_Blocks sudoku = length (blocks sudoku) == 3*9 &&
+                      all (\x -> length x == 9) (blocks sudoku)
+
+-- * D3
+isOkay :: Sudoku -> Bool
+isOkay sudoku = all isOkayBlock $ blocks sudoku
+
+-- * E1
+type Pos = (Int,Int)
+
+blanks :: Sudoku -> [Pos]
+blanks sudoku = filter (isBlank sudoku) pos
+  where pos = [(x,y) | x <- [0..8], y <- [0..8]]
+
+isBlank :: Sudoku -> Pos -> Bool
+isBlank sudoku pos = (((rows sudoku) !! (fst pos)) !! (snd pos)) == Nothing
+
+-- * E2 
