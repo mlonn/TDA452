@@ -126,10 +126,10 @@ parseChar char
 
 -- | cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
-cell = frequency
-        [(9, return Nothing),
-        (1, do n <- choose(1,9)
-               return (Just n))]
+cell = frequency [ 
+  (9, return Nothing), 
+  (1, elements [Just n | n <- [1..9]])
+                 ]
 
 -- * C2
 
@@ -141,39 +141,55 @@ instance Arbitrary Sudoku where
 
 -- * C3
 prop_Sudoku :: Sudoku -> Bool
-prop_Sudoku sudoku = isSudoku sudoku
+prop_Sudoku = isSudoku
+
 -------------------------------------------------------------------------
 
 -- * D1
 
 type Block = [Maybe Int]
 
+-- | Checks that there are no duplicates in a block.
+-- checks each element once
+-- if its nothing we don't care, we simply check the rest
+-- if not we check if it occures twice.
 isOkayBlock :: Block -> Bool
-isOkayBlock block = isDuplicate block []
-
-isDuplicate :: Block -> Block -> Bool
-isDuplicate [] found = True
-isDuplicate (x:xs) found | elem x found = False
-                         | x == Nothing = isDuplicate xs found
-                         | otherwise    = isDuplicate xs (x:found)
+isOkayBlock [] = True
+isOkayBlock (x:xs) 
+  | isNothing x = isOkayBlock xs
+  | otherwise   = notElem x xs && isOkayBlock xs
 
 -- * D2
 
 blocks :: Sudoku -> [Block]
-blocks sudoku = concat [rows sudoku, 
-                        transpose $ rows sudoku,
-                        makeBlocks sudoku]
+blocks sudoku = concat [rows' , transpose rows', makeBlocks' rows' ]
+    where rows' = rows sudoku
+
+---------------------------------------------------------------------------
 
 makeBlocks :: Sudoku -> [Block]
 makeBlocks sudoku = concat[merge(map (take 3) (rows sudoku)),
-                           merge(map (take 3) (map (drop 3) (rows sudoku))),
+                           merge(map (take 3 . drop 3) (rows sudoku)),
                            merge(map (drop 6) (rows sudoku))]
 
 merge :: [Block] -> [Block]
-merge blocks | length blocks > 0 =  concat (take 3 (blocks)):
-                                          merge (drop 3 blocks)
-merge blocks | otherwise = []
-                 
+merge blocks 
+    | not (null blocks) =  concat (take 3 blocks): merge (drop 3 blocks)
+    | otherwise = []
+
+---------------------------------------------------------------------------
+
+makeBlocks' :: [Block] -> [Block]
+makeBlocks' [] = []
+makeBlocks' rows' = makeBlock now ++ makeBlocks' later 
+  where (now, later) = splitAt 3 rows'
+
+makeBlock :: [Block] -> [Block]
+makeBlock [[],[],[]] = []
+makeBlock rows' = concatMap (take 3) rows' : makeBlock (map (drop 3) rows')
+
+---------------------------------------------------------------------------
+
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sudoku = length (blocks sudoku) == 3*9 &&
                       all (\x -> length x == 9) (blocks sudoku)
@@ -186,12 +202,20 @@ isOkay sudoku = all isOkayBlock $ blocks sudoku
 type Pos = (Int,Int)
 
 blanks :: Sudoku -> [Pos]
+<<<<<<< HEAD
 blanks sudoku = filter (\x isNothing sudoku) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
 (!!?):: Sudoku -> Pos -> Maybe Int
 (!!?) sudoku (x,y) = rows sudoku !! x !! y
     
+=======
+blanks sudoku = filter (\x -> isNothing (sudoku !!? x)) pos
+  where pos = [(x,y) | x <- [0..8], y <- [0..8]]
+
+(!!?) :: Sudoku -> Pos -> Maybe Int
+(!!?) sudoku (x, y) = rows sudoku !! x !! y
+>>>>>>> 07d1664e10e1a489518f35579bf60e317d4593e8
 
 -----------------------------------------------------------------------------
 -- * E2 

@@ -7,7 +7,7 @@ cell = frequency [ (9, return Nothing),
                    (1, elements [Just n | n <- [1..9]]) 
                  ]
 
--- * C
+-- * C2
 
 -- | an instance for generating Arbitrary Sudokus
 instance Arbitrary Sudoku where
