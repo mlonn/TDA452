@@ -275,3 +275,8 @@ findBestBlank sud = minimumBy (leastCandidates sud) (blanks sud)
 leastCandidates :: Sudoku -> Pos -> Pos -> Ordering
 leastCandidates sud pos1 pos2 = compare (nbrCandid pos1) (nbrCandid pos2)
     where nbrCandid pos = length (candidates sud pos)
+
+prop_fbb :: Sudoku -> Bool
+prop_fbb sud =  all (best <=) $ map (length . candidates sud) (blanks sud) 
+              where best = length (candidates sud (findBestBlank sud))
+    
