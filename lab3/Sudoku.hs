@@ -179,17 +179,6 @@ merge blocks
 
 ---------------------------------------------------------------------------
 
-makeBlocks' :: [Block] -> [Block]
-makeBlocks' [] = []
-makeBlocks' rows' = makeBlock now ++ makeBlocks' later 
-  where (now, later) = splitAt 3 rows'
-
-makeBlock :: [Block] -> [Block]
-makeBlock [[],[],[]] = []
-makeBlock rows' = concatMap (take 3) rows' : makeBlock (map (drop 3) rows')
-
----------------------------------------------------------------------------
-
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sudoku = length (blocks sudoku) == 3*9 &&
                       all (\x -> length x == 9) (blocks sudoku)
