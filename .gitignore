@@ -1,6 +1,9 @@
 ## Filmer
 FL-Filmer
 
+## exe-files
+*.exe
+
 ### Git ###
 *.orig
 

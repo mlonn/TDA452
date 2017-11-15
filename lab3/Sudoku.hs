@@ -5,7 +5,7 @@ import Data.Maybe
 import Data.Char
 import Data.List
 
-main = quickCheck prop_Blocks
+main = quickCheck prop_SolveSound
 
 -- | Representation of sudoku puzzlese (allows some junk)
 newtype Sudoku = Sudoku { rows :: [[Maybe Int]] }
@@ -202,7 +202,13 @@ isOkay sudoku = all isOkayBlock $ blocks sudoku
 type Pos = (Int,Int)
 
 blanks :: Sudoku -> [Pos]
-blanks sudoku = filter (\x -> isNothing (sudoku !!? x)) pos
+blanks = values isNothing
+
+filled :: Sudoku -> [Pos]
+filled = values isJust
+
+values ::  (Maybe Int -> Bool) -> Sudoku -> [Pos]
+values f sudoku = filter (\x -> f (sudoku !!? x)) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
 (!!?) :: Sudoku -> Pos -> Maybe Int
@@ -211,4 +217,60 @@ blanks sudoku = filter (\x -> isNothing (sudoku !!? x)) pos
 -----------------------------------------------------------------------------
 -- * E2 
 (!!=) :: [a] -> (Int,a) -> [a]
-(!!=) list (index, value) = take index list ++ [value] ++ drop (index + 1) list  
+(!!=) list (i, value) = concat[take i list, [value], drop (i + 1) list]
+
+prop_change_elem :: Eq a => [a] -> (Int, a) -> Property
+prop_change_elem list (i, value) =  i >= 0 && i < length list - 1 ==> 
+                                ((list !!= (i, value)) !! i) == value
+
+-- * E4
+update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+update sudoku (x,y) value = Sudoku (rows' !!= (x, newRow))
+  where rows' = rows sudoku
+        newRow = (rows' !! x) !!= (y, value)
+        
+prop_update :: Sudoku -> Pos -> Maybe Int -> Bool
+prop_update sudoku (x,y) value =  updated !!? (x', y') == value
+  where updated = update sudoku (x', y') value
+        x' = mod x 8
+        y' = mod y 8
+
+-- * E5
+candidates :: Sudoku -> Pos -> [Int]
+candidates sud pos = map fromJust $ filter (isOkay . update sud pos) numbers
+  where numbers = [Just x | x <- [1..9]]
+
+prop_candidates :: Sudoku -> Property
+prop_candidates sud = isOkay sud && isSudoku sud ==> isOkay updated
+  where pos = head (blanks sud)
+        candidate = head (candidates sud pos)
+        updated = update sud pos (Just candidate)
+
+-- * F1
+
+solve :: Sudoku ->  Maybe Sudoku
+solve sudoku 
+    | not (isSudoku sudoku && isOkay sudoku) = Nothing
+    | null (blanks sudoku) = Just sudoku
+    | otherwise = case filter isJust $ map solve sudokus of
+                      [] -> Nothing
+                      (x:_) -> x
+    where blank = head (blanks sudoku)
+          sudokus = map (update sudoku blank) [Just x | x <- candidates sudoku blank]
+
+readAndSolve :: FilePath -> IO()
+readAndSolve filepath = do
+            sudoku <- readSudoku filepath
+            case solve sudoku of
+              Nothing -> putStrLn "(no sulotion)"
+              Just sudoku -> printSudoku sudoku
+
+isSolutionOf :: Sudoku -> Sudoku -> Bool
+isSolutionOf sol org = isSolved && all (compareCell org sol) (filled org)
+  where isSolved = isFilled sol && isOkay sol
+
+compareCell :: Sudoku -> Sudoku -> Pos -> Bool
+compareCell sol org pos = (sol !!? pos) == (org !!? pos)
+
+prop_SolveSound :: Sudoku -> Property
+prop_SolveSound sud = isSudoku sud && isOkay sud ==> fromJust (solve sud) `isSolutionOf` sud
