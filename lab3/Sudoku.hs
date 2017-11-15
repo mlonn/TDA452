@@ -162,7 +162,7 @@ isOkayBlock (x:xs)
 -- * D2
 
 blocks :: Sudoku -> [Block]
-blocks sudoku = concat [rows' , transpose rows', makeBlocks' rows' ]
+blocks sudoku = concat [rows' , transpose rows' , makeBlocks sudoku ]
     where rows' = rows sudoku
 
 ---------------------------------------------------------------------------
@@ -244,8 +244,9 @@ solve sudoku
     | otherwise = case filter isJust $ map solve sudokus of
                       [] -> Nothing
                       (x:_) -> x
-    where blank = head (blanks sudoku)
-          sudokus = map (update sudoku blank) [Just x | x <- candidates sudoku blank]
+    where blank   = findBestBlank sudoku
+          sudokus = map (update sudoku blank) cand
+          cand    = [Just x | x <- candidates sudoku blank]
 
 readAndSolve :: FilePath -> IO()
 readAndSolve filepath = do
@@ -263,3 +264,18 @@ compareCell sol org pos = (sol !!? pos) == (org !!? pos)
 
 prop_SolveSound :: Sudoku -> Property
 prop_SolveSound sud = isSudoku sud && isOkay sud ==> fromJust (solve sud) `isSolutionOf` sud
+
+-----------------------------------------------------------------------------
+
+-- * X
+findBestBlank ::  Sudoku -> Pos
+findBestBlank sud = minimumBy (leastCandidates sud) (blanks sud)
+
+leastCandidates :: Sudoku -> Pos -> Pos -> Ordering
+leastCandidates sud pos1 pos2 = compare (nbrCandid pos1) (nbrCandid pos2) 
+  where nbrCandid pos = length (candidates sud pos)
+
+prop_fbb :: Sudoku -> Bool
+prop_fbb sud =  all (best <=) $ map (length . candidates sud) (blanks sud) 
+              where best = length (candidates sud (findBestBlank sud))
+
