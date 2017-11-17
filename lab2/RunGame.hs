@@ -30,8 +30,10 @@ runGame i =
 -- | Play until the guest player is bust or chooses to stop.
 gameLoop :: Interface -> Hand -> Hand -> IO ()
 gameLoop i deck guest =
-  do putStrLn ("Your current score: " ++ show (iValue i guest))
-     if iGameOver i guest
+  do
+    putStrLn ("Your hand: " ++ show guest)
+    putStrLn ("Your current score: " ++ show (iValue i guest))
+    if iGameOver i guest
        then finish i deck guest
        else do putStrLn "Draw another card? [y]"
                yn <- getLine
