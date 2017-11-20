@@ -161,17 +161,34 @@ isOkayBlock (x:xs)
 
 -- * D2
 
+-- | Creates blocks for all rows columns and 3x3 grids
 blocks :: Sudoku -> [Block]
 blocks sudoku = concat [rows' , transpose rows', makeBlocks sudoku ]
     where rows' = rows sudoku
 
 ---------------------------------------------------------------------------
 
+-- | Creates the 3x3 blocks for a sudoku by taking the first three, 
+--   middle three and last three from each row and merging them in groups
+--  of three 
+--  first         middle       last
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  [---]------   ---[---]---   ------[---]
+--  then meres them in groups of three to create the 3x3 blocks
+
 makeBlocks :: Sudoku -> [Block]
 makeBlocks sudoku = concat[merge(map (take 3) (rows sudoku)),
                            merge(map (take 3 . drop 3) (rows sudoku)),
                            merge(map (drop 6) (rows sudoku))]
 
+-- | takes a list and concatenates is by groups if three
 merge :: [Block] -> [Block]
 merge blocks 
     | not (null blocks) =  concat (take 3 blocks): merge (drop 3 blocks)
@@ -179,32 +196,40 @@ merge blocks
 
 ---------------------------------------------------------------------------
 
+-- | checks that a sudoku has a sudoku has 3*9 blocks (9 rows 9 coulumns 
+--    and 3 3x3 blocks) and that each blocks is 9 long.
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sudoku = length (blocks sudoku) == 3*9 &&
                       all (\x -> length x == 9) (blocks sudoku)
 
 -- * D3
+-- | checks that all blocks in a sudoku are okay.
 isOkay :: Sudoku -> Bool
 isOkay sudoku = all isOkayBlock $ blocks sudoku
 
 -- * E1
 type Pos = (Int,Int)
 
+-- | returns all blank positions is a sudoku
 blanks :: Sudoku -> [Pos]
 blanks = values isNothing
 
+-- | returns all filled positions is a sudoku
 filled :: Sudoku -> [Pos]
 filled = values isJust
 
+-- | return all positions that mathes the function f for a given position 
 values ::  (Maybe Int -> Bool) -> Sudoku -> [Pos]
 values f sudoku = filter (\x -> f (sudoku !!? x)) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
+ -- | returns the value of a position of a sudoku 
 (!!?) :: Sudoku -> Pos -> Maybe Int
 (!!?) sudoku (x, y) = rows sudoku !! x !! y
 
 -----------------------------------------------------------------------------
 -- * E2 
+
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) list (i, value) = concat[take i list, [value], drop (i + 1) list]
 
