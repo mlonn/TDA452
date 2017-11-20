@@ -6,7 +6,11 @@ import System.Random
 
 -- | A card has a rank and belongs to a suit.
 data Card = Card { rank :: Rank, suit :: Suit }
-            deriving (Eq, Show)
+            deriving (Eq)
+
+instance Show Card where
+  show (Card r s) = show s ++ show r
+
 
 instance Arbitrary Card where
   arbitrary = do suit <- arbitrary
@@ -15,7 +19,18 @@ instance Arbitrary Card where
 
 -- | All the different suits.
 data Suit = Hearts | Spades | Diamonds | Clubs
-            deriving (Eq, Show)
+            deriving (Eq)
+
+instance Show Suit where
+  show Spades   = "♠"
+  show Hearts   = red++"♥"++normal
+  show Diamonds = red++"♦"++normal
+  show Clubs    = "♣"
+
+
+-- | ANSI color escape sequences
+red = "\ESC[31m"
+normal = "\ESC[m"
 
 instance Arbitrary Suit where
   arbitrary = oneof [ return Hearts, return Spades
@@ -24,7 +39,7 @@ instance Arbitrary Suit where
 -- | A rank is either a numeric card, a face card, or an ace. The
 -- numeric cards range from two to ten.
 data Rank = Numeric Integer | Jack | Queen | King | Ace
-            deriving (Eq, Show)
+            deriving (Eq)
 
 instance Arbitrary Rank where
   arbitrary = frequency [ (1, return Jack)
@@ -35,10 +50,21 @@ instance Arbitrary Rank where
                                  return (Numeric n))
                         ]
 
+instance Show Rank where
+  show (Numeric n) = show n
+  show Jack  = "J"
+  show Queen = "Q"
+  show King  = "K"
+  show Ace   = "A"
+                        
 -- | A hand of cards. This data type can also be used to represent a
 -- deck of cards.
 data Hand = Empty | Add Card Hand
-            deriving (Eq, Show)
+            deriving (Eq)
+
+instance Show Hand where
+  show (Add (Card r s) hand) = concat [show r, show s, " ", show hand]
+  show Empty = "."
 
 -- | This instance on average yields larger hands than the one given in
 -- the lecture.

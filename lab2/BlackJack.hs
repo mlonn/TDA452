@@ -50,7 +50,7 @@ gameOver hand = value hand > 21
 -- | Checks which hand is highest value and not over 21.
 -- Take the hands in order Guest -> Bank.
 winner :: Hand -> Hand -> Player
-winner guest bank  
+winner guest bank
     | gameOver guest           = Bank
     | gameOver bank            = Guest
     | value guest > value bank = Guest
@@ -118,47 +118,24 @@ playBank deck
 -- | Draws cards from a deck to a hand until that hand has a value of > 16
 playBank' :: Hand -> Hand -> Hand
 playBank' deck bankHand 
-        | valueHand bankHand' < 16 = playBank' deck' bankHand'
+        | value bankHand' < 16 = playBank' deck' bankHand'
         | otherwise = bankHand'
-    where (deck',bankHand') = draw deck bankHand
+    where
+        (deck',bankHand') = draw deck bankHand
     
--- | Adds one hand to another. (Reverses order of first hand)
--- Takes first card from first argument and puts it on top of the second
--- until all cards in the first argument is in the second.
-(~+) :: Hand -> Hand -> Hand
-(Add card hand) ~+ targetHand = hand ~+ Add card targetHand
-_ ~+ targetHand               = targetHand
-
--- | Removes card at position n from the deck.
-removeCard :: Integer -> Hand -> (Card, Hand) 
-removeCard n deck  
-        | deck == Empty = error "draw: The deck is empty."
-        | n > size deck = error "deck has less cards than n"
-        | otherwise = removeCard' n Empty deck
-
--- | Moves card to from one hand to another until you find the card to be
--- removed, then adds the two hands together
--- keeps the order of the original deck.
-removeCard' :: Integer -> Hand -> Hand -> (Card, Hand)
-removeCard' n top bottom 
-        | n == 1 = (card' , top ~+ bottom')
-        | n < 1 = error "removeCard: Can't remove <1 card"
-        | n > size bottom = error "removeCard: Not that many cards in deck"
-        | otherwise = removeCard' (n-1) (Add card' top) bottom'
-    where (Add card' bottom') = bottom
+removeCard :: Integer -> Hand -> (Card, Hand)
+removeCard 1 (Add c h) = (c, h)
+removeCard n (Add c h) = (card', Add c hand')
+    where
+        (card', hand') = removeCard (n-1) h
 
 -- | Shuffles the cards in a given deck
 shuffleCards :: StdGen -> Hand -> Hand
-shuffleCards g = shuffle' g Empty
-
--- | Takes a random card from the source deck and adds it to a target deck
---   until all cards have been removed from the source deck
-shuffle' :: StdGen -> Hand -> Hand -> Hand
-shuffle' g target Empty = target
-shuffle' g target source = shuffle' g' (Add card' target) source' 
-    where 
-        (nr, g') = randomR (1, size source) g
-        (card', source') = removeCard nr source
+shuffleCards _ Empty = Empty
+shuffleCards g h = Add c (shuffleCards g' h)
+    where
+        (c, h') = removeCard nr h
+        (nr, g') = randomR (1, size h) g
 
 -- | Checks that the cards are the same after shuffle.
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool

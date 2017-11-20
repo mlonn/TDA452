@@ -5,6 +5,7 @@ import Data.Maybe
 import Data.Char
 import Data.List
 
+
 main = quickCheck prop_SolveSound
 
 -- | Representation of sudoku puzzlese (allows some junk)
@@ -59,9 +60,12 @@ allBlankSudoku = Sudoku $ replicate 9 $ replicate 9 Nothing
 isSudoku :: Sudoku -> Bool
 isSudoku sudoku = length (rows sudoku) == 9 && all checkRow (rows sudoku)
 
+-- | Checkrow will check that the amount of rows are correct and then check 
+-- that each row contains valid values and 9 of them
 checkRow :: [Maybe Int] -> Bool
 checkRow row = length row == 9 && all checkCell row
 
+-- | Check cell will make sure that a cell contains valid data
 checkCell :: Maybe Int -> Bool
 checkCell (Just a) = a > 0 && a < 10
 checkCell Nothing  = True
@@ -83,18 +87,22 @@ isFilled sudoku = all (all isJust) (rows sudoku)
 printSudoku :: Sudoku -> IO ()
 printSudoku sudoku =  putStr $ concRows $ map formatRow $ rows sudoku
 
+-- | Will convert a sudoku row to a string in a readable formation  
 formatRow :: [Maybe Int] -> String
 formatRow [] = "|\n"
 formatRow row = concat ["| ", concatMap toStr first3, formatRow rest]
   where (first3, rest) = splitAt 3 row
 
+-- | Will parse a value in a sudoku to a string 
 toStr :: Maybe Int -> String
 toStr Nothing = ". "
 toStr (Just num) = show num ++ " "
 
+-- | will return a line with some modifications for a sudoku
 hLine :: String
 hLine = concat $ replicate 3 ("+" ++ replicate 7 '-') ++ ["+\n"]
 
+-- | Will merge all rows in to a readable formatted string
 concRows :: [String] -> String
 concRows [] = hLine
 concRows rows' = concat [ hLine, concat first3, concRows rest ]
@@ -109,18 +117,20 @@ readSudoku path = do
   content <- readFile path
   checkFormat $ Sudoku $ map (map parseChar) $ lines content
   
+-- | Check that the sudoko is valid in a sense of values and size.
 checkFormat :: Sudoku -> IO Sudoku
 checkFormat sudoku 
   | isSudoku sudoku = return sudoku
   | otherwise       = error "Isn't a Sudoku"
 
+-- | Will take string and turn in into a useable value in a Sudoku.
 parseChar :: Char -> Maybe Int
 parseChar '.' = Nothing
 parseChar char 
     | isDigit char = Just (digitToInt char)
-    | otherwise = Just 0
+    | otherwise = error "parseChar: non vaild char in sudoku"
 
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- * C1
 
@@ -143,7 +153,7 @@ instance Arbitrary Sudoku where
 prop_Sudoku :: Sudoku -> Bool
 prop_Sudoku = isSudoku
 
--------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 -- * D1
 
@@ -163,32 +173,15 @@ isOkayBlock (x:xs)
 
 -- | Creates blocks for all rows columns and 3x3 grids
 blocks :: Sudoku -> [Block]
-blocks sudoku = concat [rows' , transpose rows', makeBlocks sudoku ]
-    where rows' = rows sudoku
+blocks (Sudoku rows') = concat [rows' , transpose rows', makeBlocks rows' ]
 
----------------------------------------------------------------------------
+-- | Will turn each 3x3 part of the sudoku to a block 
+makeBlocks :: [Block] -> [Block]
+makeBlocks sud 
+    | any null sud = []
+    | otherwise = merge (map (take 3) sud) ++ makeBlocks (map (drop 3) sud)
 
--- | Creates the 3x3 blocks for a sudoku by taking the first three, 
---   middle three and last three from each row and merging them in groups
---  of three 
---  first         middle       last
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  [---]------   ---[---]---   ------[---]
---  then meres them in groups of three to create the 3x3 blocks
-
-makeBlocks :: Sudoku -> [Block]
-makeBlocks sudoku = concat[merge(map (take 3) (rows sudoku)),
-                           merge(map (take 3 . drop 3) (rows sudoku)),
-                           merge(map (drop 6) (rows sudoku))]
-
--- | takes a list and concatenates is by groups if three
+-- | Merges 3 blocks in to one recursivly.
 merge :: [Block] -> [Block]
 merge blocks 
     | not (null blocks) =  concat (take 3 blocks): merge (drop 3 blocks)
@@ -200,12 +193,15 @@ merge blocks
 --    and 3 3x3 blocks) and that each blocks is 9 long.
 prop_Blocks :: Sudoku -> Bool
 prop_Blocks sudoku = length (blocks sudoku) == 3*9 &&
-                      all (\x -> length x == 9) (blocks sudoku)
+                     all (\x -> length x == 9) (blocks sudoku)
 
 -- * D3
--- | checks that all blocks in a sudoku are okay.
+
+-- | Checks that a sudoku dosent have any cells that goes against the rules.
 isOkay :: Sudoku -> Bool
 isOkay sudoku = all isOkayBlock $ blocks sudoku
+
+-----------------------------------------------------------------------------
 
 -- * E1
 type Pos = (Int,Int)
@@ -218,26 +214,29 @@ blanks = values isNothing
 filled :: Sudoku -> [Pos]
 filled = values isJust
 
--- | return all positions that mathes the function f for a given position 
+-- | return all positions that matches the function f for a given position 
 values ::  (Maybe Int -> Bool) -> Sudoku -> [Pos]
 values f sudoku = filter (\x -> f (sudoku !!? x)) pos
   where pos = [(x,y) | x <- [0..8], y <- [0..8]]
 
- -- | returns the value of a position of a sudoku 
+-- | Will return a value at a given position in a sudoku
 (!!?) :: Sudoku -> Pos -> Maybe Int
 (!!?) sudoku (x, y) = rows sudoku !! x !! y
 
------------------------------------------------------------------------------
 -- * E2 
 
+-- | Sets a value at a specific position in a row.
 (!!=) :: [a] -> (Int,a) -> [a]
 (!!=) list (i, value) = concat[take i list, [value], drop (i + 1) list]
+
 
 prop_change_elem :: Eq a => [a] -> (Int, a) -> Property
 prop_change_elem list (i, value) =  i >= 0 && i < length list - 1 ==> 
                                 ((list !!= (i, value)) !! i) == value
 
 -- * E4
+
+-- | Sets a new value at a given position in a sudoku
 update :: Sudoku -> Pos -> Maybe Int -> Sudoku
 update sudoku (x,y) value = Sudoku (rows' !!= (x, newRow))
   where rows' = rows sudoku
@@ -250,6 +249,8 @@ prop_update sudoku (x,y) value =  updated !!? (x', y') == value
         y' = mod y 8
 
 -- * E5
+
+-- | Finds all possible values for a position in a sudoku. 
 candidates :: Sudoku -> Pos -> [Int]
 candidates sud pos = map fromJust $ filter (isOkay . update sud pos) numbers
   where numbers = [Just x | x <- [1..9]]
@@ -260,8 +261,11 @@ prop_candidates sud = isOkay sud && isSudoku sud ==> isOkay updated
         candidate = head (candidates sud pos)
         updated = update sud pos (Just candidate)
 
+-----------------------------------------------------------------------------
+
 -- * F1
 
+-- | Solves a given sudoku if possible.
 solve :: Sudoku -> Maybe Sudoku
 solve sudoku
   | isFilled sudoku = Just sudoku
@@ -271,7 +275,7 @@ solve sudoku
   where blank = findBestBlank sudoku
         sudokus' = map (update sudoku blank . Just) (candidates sudoku blank)
 
-
+-- | Reads a sudoku from file and solves it if possible.
 readAndSolve :: FilePath -> IO()
 readAndSolve filepath = do
             sudoku <- readSudoku filepath
@@ -279,10 +283,12 @@ readAndSolve filepath = do
               Nothing -> putStrLn "(no sulotion)"
               Just sudoku -> printSudoku sudoku
 
+-- | determines if a given solution is a valid solution of a another sudoku.
 isSolutionOf :: Sudoku -> Sudoku -> Bool
 isSolutionOf sol org = isSolved && all (compareCell org sol) (filled org)
   where isSolved = isFilled sol && isOkay sol
 
+-- | checks if a cell has the same value in 2 sudokus.
 compareCell :: Sudoku -> Sudoku -> Pos -> Bool
 compareCell sol org pos = (sol !!? pos) == (org !!? pos)
 
@@ -294,9 +300,12 @@ prop_SolveSound sud = isSudoku sud && isOkay sud && isJust solved ==>
 -----------------------------------------------------------------------------
 -- * X
 
+-- | Finds a blank posisiton with the least possible candidates. 
 findBestBlank :: Sudoku -> Pos
 findBestBlank sud = minimumBy (leastCandidates sud) (blanks sud)
 
+-- | Determines which of two cells in a sudoku has the 
+-- least possible candidates.
 leastCandidates :: Sudoku -> Pos -> Pos -> Ordering
 leastCandidates sud pos1 pos2 = compare (nbrCandid pos1) (nbrCandid pos2)
     where nbrCandid pos = length (candidates sud pos)
