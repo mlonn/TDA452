@@ -2,7 +2,7 @@ import Tuple exposing (first, second)
 import List exposing (member, map, unzip)
 import Random exposing (generate, int, pair)
 -- import Svg
-import Html exposing (beginnerProgram, Html, div, text, Attribute, button)
+import Html exposing (program, Html, div, text, Attribute, button)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style)
 import String exposing (concat)
@@ -22,12 +22,14 @@ type alias Board = { v : List Wall, h : List Wall, s : Int}
 
 type Direction = N | S | W | E
 
-
 type alias Wall = (Pos, Pos)
 
-type alias Elem = (Robot, Direction)
+type alias Move = (Robot, Direction)
 
 type alias Model = {b:Board, r:List Robot, m:List Marker}
+
+type Msg
+  = Move Move
 
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
@@ -61,10 +63,10 @@ moveRobot r d = case d of
   E -> {c = r.c, p = (first r.p, (second r.p) + 1)}
   W -> {c = r.c, p = (first r.p, (second r.p) - 1)}
 
-move : Elem -> Model -> Robot
-move (r, d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
+move : Msg -> Model -> Robot
+move (Move (r , d)) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
                       then r
-                      else move ((moveRobot r d ), d) m
+                      else move (Move ((moveRobot r d ), d)) m
 
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (map (\x -> x.p) lr)
@@ -76,43 +78,43 @@ isWall p d b = case d of
   W -> (member p (map second b.v))
   E -> (member p (map first b.v))
 
-showBoard : Int -> Html Elem
+showBoard : Int -> Html Msg
 showBoard i = div [boardWrapper i] (makeCells (i) (i))
 
-makeCells : Int -> Int -> List (Html Elem)
+makeCells : Int -> Int -> List (Html Msg)
 makeCells s i = case i of
   0 -> []
   _ -> makeRow s i ++ makeCells s (i-1)
 
-makeRow : Int -> Int -> List (Html Elem)
+makeRow : Int -> Int -> List (Html Msg)
 makeRow s i =
   case s of
     0 -> []
     _ -> makeCell s i :: makeRow (s-1) i
 
-makeCell : Int -> Int -> Html Elem
+makeCell : Int -> Int -> Html Msg
 makeCell s i = div [baseCell s i] []
 
 
-baseCell : Int -> Int -> Attribute Elem
+baseCell : Int -> Int -> Attribute Msg
 baseCell x y = style (("border-style", "solid") :: put x y)
 
-showRobots : List Robot -> Int -> Html Elem
+showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (map showRobot lr)
 
-showRobot : Robot -> Html Elem
+showRobot : Robot -> Html Msg
 showRobot r = div [robotStyle r]
-  [ button [ onClick (r, N), style (put 1 0)] [text "N"],
-    button [ onClick (r, W), style (put 0 1)] [text "W"],
-    button [ onClick (r, E), style (put 2 1)] [text "E"],
-    button [ onClick (r, S), style (put 1 2)] [text "S"],
+  [ button [ onClick (Move (r, N)), style (put 1 0)] [text "N"],
+    button [ onClick (Move (r, W)), style (put 0 1)] [text "W"],
+    button [ onClick (Move (r, E)), style (put 2 1)] [text "E"],
+    button [ onClick (Move (r, S)), style (put 1 2)] [text "S"],
     div [style (put 1 1)] [text "R"]
   ]
 
 put : Int -> Int -> List (String, String)
 put x y = [("grid-column", toString (x+1)), ("grid-row", toString (y+1))]
 
-robotStyle : Robot -> Attribute Elem
+robotStyle : Robot -> Attribute Msg
 robotStyle r = style (
   [
     ("font-size", "small"),
@@ -123,10 +125,10 @@ robotStyle r = style (
     ("text-align", "center")
   ] ++ put (second r.p) (first r.p))
 
-showWalls : List Wall -> Int -> Html Elem
+showWalls : List Wall -> Int -> Html Msg
 showWalls lw s = div [wallWrapper s] (List.concat (map showWall lw))
 
-showWall : Wall -> List (Html Elem)
+showWall : Wall -> List (Html Msg)
 showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
 
 wallStyle : ((Pos, Pos) -> Pos) -> Wall -> Attribute msg
@@ -142,13 +144,13 @@ wallBorderStyle f w =
 checkH : Wall -> Bool
 checkH w = second (first w) == second (second w)
 
-boardWrapper : Int -> Attribute Elem
+boardWrapper : Int -> Attribute Msg
 boardWrapper s = style (wrapper s)
 
-robotWrapper : Int -> Attribute Elem
+robotWrapper : Int -> Attribute Msg
 robotWrapper s = style (("z-index","20") :: wrapper s)
 
-wallWrapper : Int -> Attribute Elem
+wallWrapper : Int -> Attribute Msg
 wallWrapper s = style (("z-index", "10") :: wrapper s)
 
 wrapper : Int -> List (String, String)
@@ -159,7 +161,7 @@ wrapper s = let screen = 720 in
   ("position","absolute")
   ]
 
-view : Model -> Html Elem
+view : Model -> Html Msg
 view model = div [style [("display","inline-flex")]] [
   showBoard model.b.s,
   showRobots model.r model.b.s,
@@ -169,9 +171,11 @@ view model = div [style [("display","inline-flex")]] [
 game : Model
 game = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}]}
 
-update : Elem -> Model -> Model
-update elem m = let rl = removeRobot m.r (first elem) in
-    {b = m.b, r = (move elem m) :: rl, m = m.m}
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg m = case msg of
+              Move mv -> let rl = removeRobot m.r (first mv) in
+                              ({b = m.b, r = (move (Move mv) m) :: rl, m = m.m}, Cmd.none)
+              
 
 removeRobot : List Robot -> Robot -> List Robot
 removeRobot lr r =case lr of
@@ -180,7 +184,24 @@ removeRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
-main : Program Never Model ( Robot, Direction )
-main = beginnerProgram {model = game, view = view, update = update}
+updateRobot : List Robot -> Robot -> List Robot
+updateRobot lr r =case lr of
+  (x :: xs) -> if x.c == r.c
+               then r :: xs
+               else x :: removeRobot xs r
+  [] -> []
+
+init : (Model, Cmd Msg)
+init = (game, Cmd.none)
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+
+main : Program Never Model Msg
+main = program {init = init,
+                view = view,
+                update = update,
+                subscriptions = subscriptions}
 
 -- prop_moveRobot : Robot -> Board -> Direction -> Bool
