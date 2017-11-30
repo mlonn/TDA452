@@ -3,6 +3,9 @@ FL-Filmer
 
 .linter
 
+## elm
+elmLab/elm-stuff/
+index.html
 ## exe-files
 *.exe
 
@@ -78,4 +81,3 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
