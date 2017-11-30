@@ -1,6 +1,6 @@
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip)
-import Random exposing (generate, int, pair)
+import Random exposing (map3, Generator, generate, int, pair, list)
 -- import Svg
 import Html exposing (program, Html, div, text, Attribute, button)
 import Html.Events exposing (onClick)
@@ -30,6 +30,8 @@ type alias Model = {b:Board, r:List Robot, m:List Marker}
 
 type Msg
   = Move Move
+  | NewGame
+  | NewBoard Board
 
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
@@ -63,10 +65,10 @@ moveRobot r d = case d of
   E -> {c = r.c, p = (first r.p, (second r.p) + 1)}
   W -> {c = r.c, p = (first r.p, (second r.p) - 1)}
 
-move : Msg -> Model -> Robot
-move (Move (r , d)) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
+move : Move -> Model -> Robot
+move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
                       then r
-                      else move (Move ((moveRobot r d ), d)) m
+                      else move ((moveRobot r d ), d) m
 
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (map (\x -> x.p) lr)
@@ -165,7 +167,8 @@ view : Model -> Html Msg
 view model = div [style [("display","inline-flex")]] [
   showBoard model.b.s,
   showRobots model.r model.b.s,
-  showWalls (model.b.v ++ model.b.h) model.b.s
+  showWalls (model.b.v ++ model.b.h) model.b.s,
+  button [ onClick (NewGame), style [("z-index","30")]] [text "start game"]
   ]
 
 game : Model
@@ -174,8 +177,23 @@ game = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=R
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({b = m.b, r = (move (Move mv) m) :: rl, m = m.m}, Cmd.none)
-              
+                              ({b = m.b, r = (move (mv) m) :: rl, m = m.m}, Cmd.none)
+              NewGame -> (m, generate NewBoard (boardGenerator 10 5))
+              NewBoard n -> ({b= (mergeBoards (emptyBoard n.s) n), r = m.r, m = m.m}, Cmd.none)
+
+vWallsGenerator : Int -> Int -> Generator (List Wall)
+vWallsGenerator limit n = list n (pair (pair (int 0 limit) (int 0 limit)) (pair (int 0 limit) (int 0 limit)))
+
+hWallsGenerator : Int -> Int -> Generator (List Wall)
+hWallsGenerator limit n = list n (pair (pair (int 0 limit) (int 0 limit)) (pair (int 0 limit) (int 0 limit)))
+
+boardGenerator : Int -> Int -> Generator Board
+boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
+
+mergeBoards : Board -> Board -> Board
+mergeBoards b1 b2 = if (b1.s == b2.s) then
+                                      {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
+                                    else {v = b1.v, h=b1.h, s=b1.s}
 
 removeRobot : List Robot -> Robot -> List Robot
 removeRobot lr r =case lr of
