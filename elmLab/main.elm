@@ -1,9 +1,11 @@
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip)
-import Random exposing (map3, Generator, generate, int, pair, list)
+import Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
 -- import Svg
-import Html exposing (program, Html, div, text, Attribute, button)
+import Html exposing (programWithFlags, Html, div, text, Attribute, button)
 import Html.Events exposing (onClick)
+import Time exposing (Time, now, inMilliseconds)
+import Task exposing (perform)
 import Html.Attributes exposing (style)
 import String exposing (concat)
 
@@ -26,12 +28,23 @@ type alias Wall = (Pos, Pos)
 
 type alias Move = (Robot, Direction)
 
-type alias Model = {b:Board, r:List Robot, m:List Marker}
+type alias Model = {b:Board, r:List Robot, m:List Marker, s: Seed}
 
 type Msg
   = Move Move
   | NewGame
+  | OnTime Time
   | NewBoard Board
+
+getTime : Cmd Msg
+getTime =
+  Task.perform OnTime Time.now
+
+--getSeed : Cmd Msg -> Seed
+--getSeed OnTime time = initialSeed <| floor <| inMilliseconds time
+
+randomSeed : Seed
+randomSeed = initialSeed 31456
 
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
@@ -172,23 +185,37 @@ view model = div [style [("display","inline-flex")]] [
   ]
 
 game : Model
-game = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}]}
+game = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({b = m.b, r = (move (mv) m) :: rl, m = m.m}, Cmd.none)
-              NewGame -> (m, generate NewBoard (boardGenerator 10 5))
-              NewBoard n -> ({b= (mergeBoards (emptyBoard n.s) n), r = m.r, m = m.m}, Cmd.none)
+                              ({game | r = (move (mv) m) :: rl}, Cmd.none)
+              OnTime time -> ({game | s = initialSeed <| floor <| inMilliseconds time}, generate NewBoard (boardGenerator 10 5 m.s))
+              NewGame -> (m, generate NewBoard (boardGenerator 10 5 m.s))
+              NewBoard board -> ({b= (mergeBoards (emptyBoard board.s) board), r = m.r, m = m.m, s = m.s}, Cmd.none)
 
-vWallsGenerator : Int -> Int -> Generator (List Wall)
-vWallsGenerator limit n = list n (pair (pair (int 0 limit) (int 0 limit)) (pair (int 0 limit) (int 0 limit)))
+vWallsGenerator : Int -> Int -> Seed -> Generator (List Wall)
+vWallsGenerator limit n seed = let
+                            r = (step (int 1 limit) (seed))
+                            x = first r
+                            y = first (step (int 1 limit) (second r))
+                          in
+                          list n (pair (pair (int (x) (x)) (int y y)) (pair (int (x+1) (x+1)) (int y y)))
 
-hWallsGenerator : Int -> Int -> Generator (List Wall)
-hWallsGenerator limit n = list n (pair (pair (int 0 limit) (int 0 limit)) (pair (int 0 limit) (int 0 limit)))
+hWallsGenerator : Int -> Int -> Seed -> Generator (List Wall)
+hWallsGenerator limit n seed = list n (hWallGenerator limit seed)
 
-boardGenerator : Int -> Int -> Generator Board
-boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
+hWallGenerator: Int -> Seed -> Generator Wall
+hWallGenerator limit seed = let
+                            r = (step (int 1 limit) (initialSeed 0))
+                            x = first r
+                            y = first (step (int 1 limit) (second r))
+                          in
+                          pair (pair (int x x) (int (y) (y))) (pair (int x x) (int (y+1) (y+1)))
+
+boardGenerator : Int -> Int -> Seed -> Generator Board
+boardGenerator s w seed = map3 Board (vWallsGenerator s w seed) (hWallsGenerator s w seed) (int s s )
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
@@ -209,15 +236,16 @@ updateRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
-init : (Model, Cmd Msg)
-init = (game, Cmd.none)
+init : {startTime : Float} -> (Model, Cmd Msg)
+init {startTime} = ({game | s = initialSeed <| round startTime}, getTime)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-main : Program Never Model Msg
-main = program {init = init,
+
+main : Program { startTime : Float } Model Msg
+main = programWithFlags {init = init,
                 view = view,
                 update = update,
                 subscriptions = subscriptions}
