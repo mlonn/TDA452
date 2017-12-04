@@ -89,14 +89,6 @@ update msg m = case msg of
               NewGame -> (m, generate NewBoard (boardGenerator 10 5))
               NewBoard board -> ({m | b = (mergeBoards (emptyBoard board.s) board)}, Cmd.none)
 
-boardGenerator : Int -> Int -> Generator Board
-boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
-
-mergeBoards : Board -> Board -> Board
-mergeBoards b1 b2 = if (b1.s == b2.s) then
-                                      {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
-                                    else {v = b1.v, h=b1.h, s=b1.s}
-
 removeRobot : List Robot -> Robot -> List Robot
 removeRobot lr r =case lr of
   (x :: xs) -> if x.c == r.c
