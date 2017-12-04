@@ -6,7 +6,7 @@
     <defs></defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="square">
         <g id="Up" stroke-width="2" stroke="#000000">
-            <polyline id="Line" transform="translate(35.000000, 5.000000) scale(-1, -1) rotate(90.000000) translate(-35.000000, -5.000000) " points="32.5 -13 37.5 5 32.5 23"></polyline>
+            <polyline id="Line" transform="translate(35.000000, 6.000000) scale(-1, -1) rotate(90.000000) translate(-35.000000, -6.000000) " points="32.5 -12 37.5 6 32.5 24"></polyline>
         </g>
     </g>
 </svg>

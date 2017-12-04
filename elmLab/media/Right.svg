@@ -6,7 +6,7 @@
     <defs></defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="square">
         <g id="Right" stroke-width="2" stroke="#000000">
-            <polyline id="Line" points="5 15 10 40 5 65"></polyline>
+            <polyline id="Line" points="2 15 7 40 2 65"></polyline>
         </g>
     </g>
 </svg>
