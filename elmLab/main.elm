@@ -1,10 +1,9 @@
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip)
 import Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
--- import Svg
-import Html exposing (programWithFlags, Html, div, text, Attribute, button)
+import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (style, class)
+import Html.Attributes exposing (style, class, src)
 import Common exposing (..)
 import Wall exposing (..)
 import Robot exposing (..)
@@ -57,12 +56,12 @@ showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (map showRobot lr)
 
 showRobot : Robot -> Html Msg
-showRobot r = div [robotStyle r]
-  [ button [ onClick (Move (r, N)), buttonStyle N] [text "N"],
-    button [ onClick (Move (r, W)), buttonStyle W] [text "W"],
-    button [ onClick (Move (r, E)), buttonStyle E] [text "E"],
-    button [ onClick (Move (r, S)), buttonStyle S] [text "S"],
-    div [style (put 1 1)] [text "R"]
+showRobot r = div [robotCellStyle r]
+  [ div [ onClick (Move (r, N)), buttonStyle N] [svg N],
+    div [ onClick (Move (r, W)), buttonStyle W] [svg W],
+    div [ onClick (Move (r, E)), buttonStyle E] [svg E],
+    div [ onClick (Move (r, S)), buttonStyle S] [svg S],
+    div [robotStyle r.c] [robotSvg]
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -81,7 +80,7 @@ view model = div [style [("display","inline-flex")]] [
   ]
 
 baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
+baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -106,7 +105,7 @@ removeRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = ({baseGame| s = initialSeed <| round startTime}, generate NewBoard (boardGenerator 10 5))
+init {startTime} = ({baseGame| s = initialSeed <| round startTime}, generate NewBoard (boardGenerator 5 5))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

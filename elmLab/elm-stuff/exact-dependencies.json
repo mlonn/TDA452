@@ -1,6 +1,10 @@
 {
-    "elm-lang/virtual-dom": "2.0.4",
+    "elm-lang/lazy": "2.0.0",
     "elm-lang/html": "2.0.0",
+    "rnons/elm-svg-parser": "1.2.0",
     "elm-lang/svg": "2.0.0",
-    "elm-lang/core": "5.1.1"
+    "rnons/elm-svg-loader": "1.0.0",
+    "elm-lang/core": "5.1.1",
+    "elm-community/parser-combinators": "1.1.0",
+    "elm-lang/virtual-dom": "2.0.4"
 }
