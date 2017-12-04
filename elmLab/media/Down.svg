@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="35px" height="8px" viewBox="0 0 35 8" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="70px" height="10px" viewBox="0 0 70 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 46.1 (44463) - http://www.bohemiancoding.com/sketch -->
     <title>Down</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="square">
         <g id="Down" stroke-width="2" stroke="#000000">
-            <polyline id="Line" transform="translate(17.500000, 4.500000) scale(-1, 1) rotate(90.000000) translate(-17.500000, -4.500000) " points="15 -11 20 4.5 15 20"></polyline>
+            <polyline id="Line" transform="translate(35.000000, 5.000000) scale(-1, 1) rotate(90.000000) translate(-35.000000, -5.000000) " points="32.5 -13 37.5 5 32.5 23"></polyline>
         </g>
     </g>
 </svg>
