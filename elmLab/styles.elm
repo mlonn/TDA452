@@ -7,17 +7,17 @@ import String exposing (concat)
 import Wall exposing (..)
 import Html exposing (Attribute, node, Html)
 import Html.Attributes exposing (attribute, style)
-import Svg.Attributes exposing (class)
+import Svg.Attributes exposing (fill)
 import InlineSvg exposing (..)
 
 {icon} =
   inline
-          { right = "./media/Right.svg",
-            left  = "./media/Left.svg",
-            up    = "./media/Up.svg",
-            down  = "./media/Down.svg",
-            robot = "./media/Robot.svg"
-          }
+        { robot = "./media/Robot.svg",
+          r = "./media/Right.svg",
+          l = "./media/Left.svg",
+          u  = "./media/Up.svg",
+          d  = "./media/Down.svg"
+        }
 
 
 put : Int -> Int -> List (String, String)
@@ -78,12 +78,11 @@ buttonStyle d = style (("width","100%") ::
                   E -> (put 2 1)
                   W -> (put 0 1)))
 
-robotSvg : Html msg
-robotSvg = icon .robot [class "icon"]
+robotImage : Color -> String
+robotImage c = concat ["media/", (toString c), "/Robot.svg"]
 
-svg : Direction -> Html msg
-svg d = case d of
-          N -> icon .up [class "icon"]
-          S -> icon .down [class "icon"]
-          E -> icon .right [class "icon"]
-          W -> icon .left [class "icon"]
+svg r d = case d of
+          N -> icon .u [robotStyle r.c]
+          S -> icon .d [robotStyle r.c]
+          E -> icon .r [robotStyle r.c]
+          W -> icon .l [robotStyle r.c]

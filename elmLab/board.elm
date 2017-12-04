@@ -6,6 +6,9 @@ type alias Board = { v : List Wall, h : List Wall, s : Int}
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
 
+boardGenerator : Int -> Int -> Generator Board
+boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
+
 generateHWalls : Int -> List Wall
 generateHWalls s = case s of
   0 -> []

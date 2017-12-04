@@ -10,15 +10,17 @@ import Robot exposing (..)
 import Board exposing (..)
 import Marker exposing (..)
 import Styles exposing (..)
+import InlineSvg exposing (..)
+import Svg.Attributes
 
 type alias Move = (Robot, Direction)
 
-type alias Model = {b:Board, r:List Robot, m:List Marker, s: Seed}
+type alias Model = {b:Board, r:List Robot, m:List Marker}
 
 type Msg
   = Move Move
-  | NewGame
-  | NewBoard Board
+  | NewGame Game
+  | Start
 
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
@@ -57,11 +59,11 @@ showRobots lr s = div [robotWrapper s] (map showRobot lr)
 
 showRobot : Robot -> Html Msg
 showRobot r = div [robotCellStyle r]
-  [ div [ onClick (Move (r, N)), buttonStyle N] [svg N],
-    div [ onClick (Move (r, W)), buttonStyle W] [svg W],
-    div [ onClick (Move (r, E)), buttonStyle E] [svg E],
-    div [ onClick (Move (r, S)), buttonStyle S] [svg S],
-    div [robotStyle r.c] [robotSvg]
+  [ img [src "media/Up.svg", onClick (Move (r, N)), buttonStyle N] [],
+    img [src "media/Left.svg", onClick (Move (r, W)), buttonStyle W] [],
+    img [src "media/Right.svg", onClick (Move (r, E)), buttonStyle E] [],
+    img [src "media/Down.svg", onClick (Move (r, S)), buttonStyle S] [],
+    img [src <| robotImage r.c, style (("width","100%") :: (put 1 1))] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -76,21 +78,21 @@ view model = div [style [("display","inline-flex")]] [
   showBoard model.b.s,
   showRobots model.r model.b.s,
   showWalls (model.b.v ++ model.b.h) model.b.s,
-  button [ onClick (NewGame), style [("z-index","30")]] [text "start game"]
+  button [ onClick (Start), style [("z-index","30")]] [text "start game"],
+  div [] [icon .robot []]
   ]
 
 baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
+baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
+
+gameGenerator : Int -> Int -> Generator Game
+gameGenerator s w = map3 Game <| boardGenerator s w
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
                               ({m | r = (move (mv) m) :: rl}, Cmd.none)
-              NewGame -> (m, generate NewBoard (boardGenerator 10 5))
-              NewBoard board -> ({m | b = (mergeBoards (emptyBoard board.s) board)}, Cmd.none)
-
-boardGenerator : Int -> Int -> Generator Board
-boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
+              Start -> (m, generate NewGame (gameGenerator 10 5))
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
@@ -105,7 +107,7 @@ removeRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = ({baseGame| s = initialSeed <| round startTime}, generate NewBoard (boardGenerator 5 5))
+init {startTime} = (baseGame, generate NewGame (gameGenerator 10 10))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
