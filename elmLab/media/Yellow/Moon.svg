@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="75px" height="75px" viewBox="0 0 75 75" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 46.1 (44463) - http://www.bohemiancoding.com/sketch -->
+    <title>Moon</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Moon" fill="#F8E71C">
+            <path d="M51.3708734,4.21193377 C48.1553629,3.42178452 44.7712823,3 41.2779009,3 C20.1376,3 3,18.4461761 3,37.5 C3,56.5538239 20.1376,72 41.2779009,72 C53.8591609,72 65.0227381,66.5292493 71.9999977,58.0831276 C66.8022833,61.7695538 60.3669795,63.95 53.3992363,63.95 C36.1346571,63.95 22.1389505,50.563314 22.1389505,34.05 C22.1389505,18.1884669 35.0516391,5.21161652 51.3708734,4.21193377 Z" id="Combined-Shape"></path>
+        </g>
+    </g>
+</svg>
