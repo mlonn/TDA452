@@ -33,12 +33,11 @@ type alias Model = {b:Board, r:List Robot, m:List Marker, s: Seed}
 type Msg
   = Move Move
   | NewGame
-  | OnTime Time
   | NewBoard Board
 
-getTime : Cmd Msg
-getTime =
-  Task.perform OnTime Time.now
+--getTime : Cmd Msg
+--getTime =
+--  Task.perform OnTime Time.now
 
 --getSeed : Cmd Msg -> Seed
 --getSeed OnTime time = initialSeed <| floor <| inMilliseconds time
@@ -57,7 +56,7 @@ generateHWalls s = case s of
 makeHOutline : Int -> Int -> List Wall
 makeHOutline s i = case i of
   0 -> []
-  _ -> [((0,i), (1,i)), ((s,i),(s+1,i))] ++ makeHOutline s (i-1)
+  _ -> [((i,0), (i,1)), ((i,s),(i,s+1))] ++ makeHOutline s (i-1)
 
 
 generateVWalls : Int -> List Wall
@@ -68,15 +67,15 @@ generateVWalls s = case s of
 makeVOutline : Int -> Int -> List Wall
 makeVOutline s i = case i of
   0 -> []
-  _ -> [((i,0), (i,1)), ((i,s),(i,s+1))] ++ makeVOutline s (i-1)
+  _ -> [((0,i), (1,i)), ((s,i),(s+1,i))] ++ makeVOutline s (i-1)
 
 
 moveRobot : Robot -> Direction -> Robot
 moveRobot r d = case d of
-  N -> {c = r.c, p = ((first r.p) - 1, second r.p)}
-  S -> {c = r.c, p = ((first r.p) + 1, second r.p)}
-  E -> {c = r.c, p = (first r.p, (second r.p) + 1)}
-  W -> {c = r.c, p = (first r.p, (second r.p) - 1)}
+  N -> {c = r.c, p = (first r.p, (second r.p)-1)}
+  S -> {c = r.c, p = (first r.p, (second r.p) + 1)}
+  E -> {c = r.c, p = ((first r.p)+1, second r.p)}
+  W -> {c = r.c, p = ((first r.p)-1, second r.p)}
 
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
@@ -138,7 +137,7 @@ robotStyle r = style (
     ("grid-auto-rows", "33%"),
     ("grid-template-columns", concat ["repeat(3, 33%)"]),
     ("text-align", "center")
-  ] ++ put (second r.p) (first r.p))
+  ] ++ put (first r.p) (second r.p))
 
 showWalls : List Wall -> Int -> Html Msg
 showWalls lw s = div [wallWrapper s] (List.concat (map showWall lw))
@@ -184,38 +183,37 @@ view model = div [style [("display","inline-flex")]] [
   button [ onClick (NewGame), style [("z-index","30")]] [text "start game"]
   ]
 
-game : Model
-game = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
+baseGame : Model
+baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(7,1)}], m= [{c=Red, s=Moon}], s = initialSeed 0}
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({game | r = (move (mv) m) :: rl}, Cmd.none)
-              OnTime time -> ({game | s = initialSeed <| floor <| inMilliseconds time}, generate NewBoard (boardGenerator 10 5 m.s))
-              NewGame -> (m, generate NewBoard (boardGenerator 10 5 m.s))
-              NewBoard board -> ({b= (mergeBoards (emptyBoard board.s) board), r = m.r, m = m.m, s = m.s}, Cmd.none)
+                              ({m | r = (move (mv) m) :: rl}, Cmd.none)
+              NewGame -> (m, generate NewBoard (boardGenerator 10 1))
+              NewBoard board -> ({m | b = (mergeBoards (emptyBoard board.s) board)}, Cmd.none)
 
-vWallsGenerator : Int -> Int -> Seed -> Generator (List Wall)
-vWallsGenerator limit n seed = let
-                            r = (step (int 1 limit) (seed))
-                            x = first r
-                            y = first (step (int 1 limit) (second r))
-                          in
-                          list n (pair (pair (int (x) (x)) (int y y)) (pair (int (x+1) (x+1)) (int y y)))
+vWallsGenerator : Int -> Int -> Generator (List Wall)
+vWallsGenerator limit n = list n (vWallGenerator limit)
 
-hWallsGenerator : Int -> Int -> Seed -> Generator (List Wall)
-hWallsGenerator limit n seed = list n (hWallGenerator limit seed)
+vWallGenerator: Int -> Generator Wall
+vWallGenerator limit = let
+                          leftPos = pair (int 1 (limit-1)) (int 1 (limit))
+                        in
+                          Random.map (\(x,y) -> ((x,y), (x+1,y))) leftPos
 
-hWallGenerator: Int -> Seed -> Generator Wall
-hWallGenerator limit seed = let
-                            r = (step (int 1 limit) (initialSeed 0))
-                            x = first r
-                            y = first (step (int 1 limit) (second r))
-                          in
-                          pair (pair (int x x) (int (y) (y))) (pair (int x x) (int (y+1) (y+1)))
 
-boardGenerator : Int -> Int -> Seed -> Generator Board
-boardGenerator s w seed = map3 Board (vWallsGenerator s w seed) (hWallsGenerator s w seed) (int s s )
+hWallsGenerator : Int -> Int -> Generator (List Wall)
+hWallsGenerator limit n = list n (hWallGenerator limit)
+
+hWallGenerator: Int -> Generator Wall
+hWallGenerator limit = let
+                          topPos = pair (int 1 limit) (int 1 (limit-1))
+                        in
+                          Random.map (\(x,y) -> ((x,y), (x,y+1))) topPos
+
+boardGenerator : Int -> Int -> Generator Board
+boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
@@ -237,7 +235,7 @@ updateRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = ({game | s = initialSeed <| round startTime}, getTime)
+init {startTime} = ({baseGame| s = initialSeed <| round startTime}, generate NewBoard (boardGenerator 10 5))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
