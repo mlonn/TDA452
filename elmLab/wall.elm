@@ -11,15 +11,19 @@ import Random exposing (pair, Generator, int, list, map)
 type alias Wall = (Pos, Pos)
 
 {-| -}
-vWallsGenerator : Int -> Int -> Generator (List Wall)
-vWallsGenerator limit n = list n (vWallGenerator limit)
+vWallsGenerator : List Wall -> Generator (List Wall)
+vWallsGenerator l = map (vWallGenerator l (int 1 4))
 
-vWallGenerator: Int -> Generator Wall
-vWallGenerator limit = let
-                          leftPos = pair (int 1 (limit-1)) (int 1 (limit))
+vWallGenerator: Wall -> Int -> Generator Wall
+vWallGenerator wall i = let
+                          topPos = first wall
+                          bottomPos = second wall
                         in
-                          map (\(x,y) -> ((x,y), (x+1,y))) leftPos
-
+                          case i of
+                          0 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
+                          1 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
+                          2 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
+                          _ -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
 {-| -}
 hWallsGenerator : Int -> Int -> Generator (List Wall)
 hWallsGenerator limit n = list n (hWallGenerator limit)
