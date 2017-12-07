@@ -21,3 +21,6 @@ markersGenerator limit = map (\x -> List.map2 (mkMarker x) colors symbols) (int 
 
 mkMarker : Int -> Color -> Symbol -> Marker
 mkMarker i c s  =   {c = c, s = s, i = i}
+
+markerCombinations : List ( Symbol, Color )
+markerCombinations =  List.concat <| List.map2 (\s cs -> List.map (\c -> (s, c)) cs) symbols <| List.map (\x -> colors) colors
