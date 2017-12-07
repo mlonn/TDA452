@@ -17,7 +17,9 @@ symbols : List Symbol
 symbols = [Moon, Planet, Star, Gear]
 {-| -}
 markersGenerator : Int -> Generator (List Marker)
-markersGenerator limit = map (\x -> List.map2 (mkMarker x) colors symbols) (int 0 limit)
+markersGenerator i = flattenList <| List.concat <| List.map (\s -> (List.map2 (\c -> markerGenerator i c) colors) s )symbols
 
-mkMarker : Int -> Color -> Symbol -> Marker
-mkMarker i c s  =   {c = c, s = s, i = i}
+markerGenerator : Int -> Color -> Symbol -> Generator Marker
+markerGenerator i c s = map (mkMarker c s) (int 0 i)
+mkMarker : Color -> Symbol -> Int -> Marker
+mkMarker c s i =   {c = c, s = s, i = i}

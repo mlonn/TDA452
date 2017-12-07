@@ -7,7 +7,6 @@ module Robot exposing (moveRobot, Robot, robotsGenerator)
 import Common exposing (..)
 import Tuple exposing (first, second)
 import Random exposing (..)
-
 {-|Robot -}
 type alias Robot = {c: Color, p: Pos }
 
@@ -21,7 +20,10 @@ moveRobot r d = case d of
 
 {-| -}
 robotsGenerator : Int -> Generator (List Robot)
-robotsGenerator s = map (\x -> List.map (mkRobot x) colors) (posGenerator s)
+robotsGenerator i = flattenList <| List.map (robotGenerator i) colors
 
-mkRobot : Pos -> Color -> Robot
-mkRobot p c = {c=c, p=p}
+robotGenerator : Int -> Color -> Generator Robot
+robotGenerator i c = map (mkRobot c) (posGenerator i)
+
+mkRobot : Color -> Pos -> Robot
+mkRobot c p = {c = c, p = p}

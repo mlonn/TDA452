@@ -5,8 +5,10 @@ module Common exposing (..)
 @docs Color
 @docs colors
 @docs posGenerator
+@docs constant
+@docs flattenList
 -}
-import Random exposing (Generator, pair, int)
+import Random exposing (Generator, pair, int, map2)
 
 
 {-| Direction -}
@@ -23,3 +25,14 @@ colors = [Red, Blue, Silver, Yellow, Green]
 {-| -}
 posGenerator : Int -> Generator Pos
 posGenerator s = pair (int 1 s) (int 1 s)
+
+{-| -}
+constant : a -> Generator a
+constant value = Random.map (\_ -> value) Random.bool
+
+{-| -}
+flattenList : List (Generator a) -> Generator (List a)
+flattenList generators =
+  case generators of
+      [] -> constant []
+      g :: gs -> map2 (::) g (flattenList gs)
