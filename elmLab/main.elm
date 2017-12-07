@@ -19,7 +19,7 @@ type alias Model = {b:Board, r:List Robot, m:List Marker}
 
 type Msg
   = Move Move
-  | NewGame Game
+  | NewGame Model
   | Start
 
 move : Move -> Model -> Robot
@@ -86,7 +86,7 @@ baseGame : Model
 baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
 
 gameGenerator : Int -> Int -> Generator Game
-gameGenerator s w = map3 Game <| boardGenerator s w <| robotGenerator s | markerGenerator s
+gameGenerator s w = map3 Game <| boardGenerator s w <| robotGenerator s <| markerGenerator s
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
