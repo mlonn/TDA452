@@ -14,11 +14,10 @@ moveRobot r d = case d of
 
 
 robotsGenerator : Int -> Generator (List Robot)
-robotsGenerator s = list 5 (generateRobot s)
+robotsGenerator s = map (\x -> List.map (mkRobot x) colors)) (generatePos s)
 
-generateRobot : Int -> Generator (Robot)
-generateRobot s =
-  let
-    p = pair (int 1 s) (int 1 s)
-  in
-    map (\x -> { c = Red, p = x }) p
+mkRobot : Pos -> Color -> Robot
+mkRobot p c = {c=c, p=p}
+
+generatePos : Int -> Generator Pos
+generatePos s = pair (int 1 s) (int 1 s)
