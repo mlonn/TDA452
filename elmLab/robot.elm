@@ -19,12 +19,9 @@ moveRobot r d = case d of
   E -> {c = r.c, p = ((first r.p)+1, second r.p)}
   W -> {c = r.c, p = ((first r.p)-1, second r.p)}
 
-{-|generates robots -}
+{-| -}
 robotsGenerator : Int -> Generator (List Robot)
-robotsGenerator s = map (\x -> List.map (mkRobot x) colors) (generatePos s)
+robotsGenerator s = map (\x -> List.map (mkRobot x) colors) (posGenerator s)
 
 mkRobot : Pos -> Color -> Robot
 mkRobot p c = {c=c, p=p}
-
-generatePos : Int -> Generator Pos
-generatePos s = pair (int 1 s) (int 1 s)

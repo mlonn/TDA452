@@ -1,18 +1,23 @@
-module Marker exposing (..)
+module Marker exposing (Marker, Symbol, symbols, markersGenerator)
 {-| Markers
 @docs Marker
 @docs Symbol
-@docs generateMarkers
+@docs symbols
+@docs markersGenerator
 -}
 
 import Common exposing (..)
-import Random exposing (Generator, pair, int)
-
-
+import Random exposing (..)
 {-| -}
-type alias Marker = {c: Color, s: Symbol, p: Pos}
+type alias Marker = {c: Color, s: Symbol, i: Int}
 {-| -}
 type Symbol = Moon | Planet | Star | Gear
 {-| -}
-generateMarkers: Int -> Int
-generateMarkers limit = 5
+symbols : List Symbol
+symbols = [Moon, Planet, Star, Gear]
+{-| -}
+markersGenerator : Int -> Generator (List Marker)
+markersGenerator limit = map (\x -> List.map2 (mkMarker x) colors symbols) (int 0 limit)
+
+mkMarker : Int -> Color -> Symbol -> Marker
+mkMarker i c s  =   {c = c, s = s, i = i}

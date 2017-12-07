@@ -86,7 +86,7 @@ view model = div [style [("display","inline-flex")]] [
 -- baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model <| boardGenerator s w <| robotsGenerator s <| markerGenerator s
+gameGenerator s w = map3 Model <| boardGenerator s w <| robotsGenerator s <| markersGenerator s
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
