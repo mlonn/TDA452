@@ -5,6 +5,8 @@ module Wall exposing (Wall, vWallsGenerator, hWallsGenerator)
 @docs hWallsGenerator
 -}
 import Common exposing (..)
+import Tuple exposing (first, second)
+import List exposing (length)
 import Random exposing (pair, Generator, int, list, map)
 
 {-| -}
@@ -12,18 +14,18 @@ type alias Wall = (Pos, Pos)
 
 {-| -}
 vWallsGenerator : List Wall -> Generator (List Wall)
-vWallsGenerator l = map (vWallGenerator l (int 1 4))
+vWallsGenerator l = flattenList <| List.map vWallGenerator l
 
-vWallGenerator: Wall -> Int -> Generator Wall
-vWallGenerator wall i = let
+vWallGenerator: Wall -> Generator Wall
+vWallGenerator wall = let
                           topPos = first wall
+                          topX = first topPos
+                          topY = second topPos
                           bottomPos = second wall
+                          bottomX = first topPos
+                          bottomY = second topPos
                         in
-                          case i of
-                          0 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
-                          1 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
-                          2 -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
-                          _ -> map (\(x,y) -> ((x,y), (x,y+1))) topPos
+                          pair (pair (int topX topX) (int topY topY)) (pair (int (topX + 1) (topX + 1)) (int topY topY))
 {-| -}
 hWallsGenerator : Int -> Int -> Generator (List Wall)
 hWallsGenerator limit n = list n (hWallGenerator limit)

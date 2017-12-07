@@ -17,7 +17,7 @@ type alias Move = (Robot, Direction)
 
 type alias Original = {b:Board, r:List Robot, m:List Marker}
 
-type alias Model = {b:Board, r:List Robot, m:List Marker, og:Original}
+type alias Model = {b:Board, r:List Robot, m:List Marker, c:Int, og:Original}
 
 
 type Msg
@@ -92,30 +92,29 @@ view model =  let
                 showRobots model.r model.b.s,
                 showWalls (model.b.v ++ model.b.h) model.b.s,
                 showMarkers internalWalls model.m model.b.s,
-                button [ onClick (Start), style [("z-index","30")]] [text "start game"]
-                button [ onClick (Reset), style [("z-index","30")]] [text "Reset"]
+                button [ onClick (Start), style [("z-index","30")]] [text "start game"],
+                button [ onClick (Reset), style [("z-index","30")]] [text "Reset"],
+                div [] [text <| toString model.c]
+
                 ]
 
-baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
+baseGame : Original
+baseGame = {b = emptyBoard 10, r = [], m= []}
 
-gameGenerator : Int -> Int -> Generator Model
+gameGenerator : Int -> Int -> Generator Original
 gameGenerator s w = map3 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({m | r = (move (mv) m) :: rl}, Cmd.none)
+                              ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
               Start -> (m, newGameCommand)
-              NewGame game -> ({b = (mergeBoards (emptyBoard game.b.s) game.b),
-                                r = game.r,
-                                m = game.m,
-                                og = game
-                                }, Cmd.none)
-              Reset -> ({m | b = m.og.b, r = m.og.r, m = m.og.m})
+              NewGame game -> (originalToModel game, Cmd.none)
+              Reset -> ({m | b = m.og.b, r = m.og.r, m = m.og.m, c = 0}, Cmd.none)
 
 --fixCollision : List Wall -> List Marker -> List Wall
 --fixCollision :
+
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
                                       {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
@@ -128,10 +127,19 @@ removeRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
+newGameCommand : Cmd Msg
 newGameCommand = generate NewGame (gameGenerator 16 25)
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (baseGame, newGameCommand)
+init {startTime} = (originalToModel baseGame, newGameCommand)
+
+originalToModel : Original -> Model
+originalToModel og = {b = (mergeBoards (emptyBoard og.b.s) og.b),
+                  r = og.r,
+                  m = og.m,
+                  c = 0,
+                  og = og
+                  }
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
