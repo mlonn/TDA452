@@ -1,4 +1,4 @@
-module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, boardWrapper, wallWrapper, buttonStyle, robotImage)
+module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, buttonStyle, robotImage, markerImage)
 {-| css stylings
 @docs baseCell
 @docs robotCellStyle
@@ -8,6 +8,8 @@ module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBor
 @docs robotWrapper
 @docs boardWrapper
 @docs markerWrapper
+@docs markerImage
+@docs markerStyle
 @docs wallWrapper
 @docs buttonStyle
 @docs robotImage

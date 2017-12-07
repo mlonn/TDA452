@@ -7,6 +7,7 @@ module Common exposing (..)
 @docs posGenerator
 @docs constant
 @docs flattenList
+@docs getAt
 -}
 import Random exposing (Generator, pair, int, map2)
 
@@ -20,7 +21,7 @@ type Color = Red | Blue | Silver | Yellow | Green
 
 {-| colors -}
 colors : List Color
-colors = [Red, Blue, Silver, Yellow, Green]
+colors = [Silver, Red, Blue, Yellow, Green]
 
 {-| -}
 posGenerator : Int -> Generator Pos
@@ -36,3 +37,10 @@ flattenList generators =
   case generators of
       [] -> constant []
       g :: gs -> map2 (::) g (flattenList gs)
+
+{-| -}
+getAt : Int -> List a -> a
+getAt i l = case List.head <| List.drop i l of
+              Just a -> a
+              Nothing ->
+                  Debug.crash "TODO"

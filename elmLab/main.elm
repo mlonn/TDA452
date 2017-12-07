@@ -1,5 +1,5 @@
 import Tuple exposing (first, second)
-import List exposing (member, map, unzip)
+import List exposing (member, map, unzip, drop)
 import Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
 import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
@@ -55,6 +55,16 @@ makeRow s i =
 makeCell : Int -> Int -> Html Msg
 makeCell s i = div [baseCell s i] []
 
+showMarkers :  List Wall -> List Marker -> Int -> Html Msg
+showMarkers lw lm s = div[markerWrapper s] (map (showMarker lw) lm)
+
+showMarker : List Wall -> Marker -> Html Msg
+showMarker lw m = let
+                    w = getAt m.i lw
+                    fw = first w
+                  in
+                    img [src <| markerImage m.c m.s, markerStyle <| if first fw * second fw == 0 then second w else first w] []
+
 showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (map showRobot lr)
 
@@ -64,7 +74,7 @@ showRobot r = div [robotCellStyle r]
     img [src "media/Left.svg", onClick (Move (r, W)), buttonStyle W] [],
     img [src "media/Right.svg", onClick (Move (r, E)), buttonStyle E] [],
     img [src "media/Down.svg", onClick (Move (r, S)), buttonStyle S] [],
-    img [src <| robotImage r.c, robotStyle r.c] []
+    img [src <| robotImage r.c, robotStyle] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -79,6 +89,7 @@ view model = div [style [("display","inline-flex")]] [
   showBoard model.b.s,
   showRobots model.r model.b.s,
   showWalls (model.b.v ++ model.b.h) model.b.s,
+  showMarkers ((drop model.b.s model.b.v) ++ (drop model.b.s model.b.h)) model.m model.b.s,
   button [ onClick (Start), style [("z-index","30")]] [text "start game"]
   ]
 
@@ -86,7 +97,7 @@ baseGame : Model
 baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator s)
+gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator w)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -108,7 +119,7 @@ removeRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (baseGame, generate NewGame (gameGenerator 10 10))
+init {startTime} = (baseGame, generate NewGame (gameGenerator 10 20))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
