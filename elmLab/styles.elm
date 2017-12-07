@@ -7,6 +7,7 @@ module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBor
 @docs wallBorderStyle
 @docs robotWrapper
 @docs boardWrapper
+@docs markerWrapper
 @docs wallWrapper
 @docs buttonStyle
 @docs robotImage
@@ -17,6 +18,7 @@ import Robot exposing (..)
 import Common exposing (..)
 import String exposing (concat)
 import Wall exposing (..)
+import Marker exposing (..)
 import Html exposing (Attribute, node, Html)
 import Html.Attributes exposing (attribute, style)
 
@@ -30,15 +32,17 @@ robotCellStyle : Robot -> Attribute msg
 robotCellStyle r = style (
   [
     ("font-size", "small"),
-    ("color", toString r.c),
     ("display", "grid"),
     ("grid-template-rows", "10% 80% 10%"),
     ("grid-template-columns", "15% 70% 15%"),
     ("text-align", "center")
   ] ++ put (first r.p) (second r.p))
 {-| -}
-robotStyle : Color -> Attribute msg
-robotStyle c = style <| [("width","100%"), ("fill",toString c)] ++ (put 1 1)
+markerStyle : Pos -> Attribute msg
+markerStyle p = style <| ("width","100%") :: put (first p) (second p)
+{-| -}
+robotStyle : Attribute msg
+robotStyle = style <| ("width","100%") :: (put 1 1)
 {-| -}
 wallStyle : ((Pos, Pos) -> Pos) -> Wall -> Attribute msg
 wallStyle f w = style ([
@@ -58,6 +62,9 @@ boardWrapper s = style (wrapper s)
 {-| -}
 robotWrapper : Int -> Attribute msg
 robotWrapper s = style (("z-index","20") :: wrapper s)
+{-| -}
+markerWrapper : Int -> Attribute msg
+markerWrapper s = style (("z-index","15") :: wrapper s)
 {-| -}
 wallWrapper : Int -> Attribute msg
 wallWrapper s = style (("z-index", "10") :: wrapper s)
@@ -80,3 +87,7 @@ buttonStyle d = style (("width","100%") ::
 {-| -}
 robotImage : Color -> String
 robotImage c = concat ["media/", (toString c), "/Robot.svg"]
+
+{-| -}
+markerImage : Color -> Symbol -> String
+markerImage c s = concat ["media/", (toString c), "/", (toString s), ".svg"]
