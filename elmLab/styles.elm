@@ -19,8 +19,6 @@ import String exposing (concat)
 import Wall exposing (..)
 import Html exposing (Attribute, node, Html)
 import Html.Attributes exposing (attribute, style)
-import Svg.Attributes exposing (fill)
-import InlineSvg exposing (..)
 
 put : Int -> Int -> List (String, String)
 put x y = [("grid-column", toString (x+1)), ("grid-row", toString (y+1))]

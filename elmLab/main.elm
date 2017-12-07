@@ -83,16 +83,17 @@ view model = div [style [("display","inline-flex")]] [
   ]
 
 baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Planet, i=0}]}
+baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model <| boardGenerator s w <| robotsGenerator s <| markersGenerator s
+gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator s)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
                               ({m | r = (move (mv) m) :: rl}, Cmd.none)
               Start -> (m, generate NewGame (gameGenerator 10 5))
+              NewGame game -> ({game | b = (mergeBoards (emptyBoard game.b.s) game.b)}, Cmd.none)
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
