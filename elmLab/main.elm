@@ -15,13 +15,16 @@ import Svg.Attributes
 
 type alias Move = (Robot, Direction)
 
-type alias Model = {b:Board, r:List Robot, m:List Marker}
+type alias Original = {b:Board, r:List Robot, m:List Marker}
+
+type alias Model = {b:Board, r:List Robot, m:List Marker, og:Original}
 
 
 type Msg
   = Move Move
-  | NewGame Model
+  | NewGame Original
   | Start
+  | Reset
 
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
@@ -90,20 +93,26 @@ view model =  let
                 showWalls (model.b.v ++ model.b.h) model.b.s,
                 showMarkers internalWalls model.m model.b.s,
                 button [ onClick (Start), style [("z-index","30")]] [text "start game"]
+                button [ onClick (Reset), style [("z-index","30")]] [text "Reset"]
                 ]
 
 baseGame : Model
 baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
+gameGenerator s w = map3 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
                               ({m | r = (move (mv) m) :: rl}, Cmd.none)
               Start -> (m, newGameCommand)
-              NewGame game -> ({game | b = (mergeBoards (emptyBoard game.b.s) game.b)}, Cmd.none)
+              NewGame game -> ({b = (mergeBoards (emptyBoard game.b.s) game.b),
+                                r = game.r,
+                                m = game.m,
+                                og = game
+                                }, Cmd.none)
+              Reset -> ({m | b = m.og.b, r = m.og.r, m = m.og.m})
 
 --fixCollision : List Wall -> List Marker -> List Wall
 --fixCollision :
