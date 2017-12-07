@@ -1,13 +1,14 @@
-module Board exposing (Board, boardGenerator)
+module Board exposing (Board, emptyBoard, boardGenerator)
 {-|  Board and its functions
 @docs Board
 @docs boardGenerator
+@docs emptyBoard
 -}
 import Wall exposing (..)
 import Random exposing (..)
 {-| -}
 type alias Board = { v : List Wall, h : List Wall, s : Int}
-
+{-| -}
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
 

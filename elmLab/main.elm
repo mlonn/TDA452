@@ -64,7 +64,7 @@ showRobot r = div [robotCellStyle r]
     img [src "media/Left.svg", onClick (Move (r, W)), buttonStyle W] [],
     img [src "media/Right.svg", onClick (Move (r, E)), buttonStyle E] [],
     img [src "media/Down.svg", onClick (Move (r, S)), buttonStyle S] [],
-    img [src <| robotImage r.c, robotStyle] []
+    img [src <| robotImage r.c, robotStyle r.c] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -82,8 +82,8 @@ view model = div [style [("display","inline-flex")]] [
   button [ onClick (Start), style [("z-index","30")]] [text "start game"]
   ]
 
--- baseGame : Model
--- baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
+baseGame : Model
+baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Planet, i=0}]}
 
 gameGenerator : Int -> Int -> Generator Model
 gameGenerator s w = map3 Model <| boardGenerator s w <| robotsGenerator s <| markersGenerator s
@@ -107,7 +107,7 @@ removeRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (gameGenerator 10 10, generate NewGame (gameGenerator 10 10))
+init {startTime} = (baseGame, generate NewGame (gameGenerator 10 10))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
