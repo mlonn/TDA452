@@ -1,6 +1,6 @@
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
-import Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
+import Random exposing (map4, Generator, generate, int, pair, list, step, initialSeed, Seed)
 import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style, class, src)
@@ -15,7 +15,7 @@ import Svg.Attributes
 
 type alias Move = (Robot, Direction)
 
-type alias Model = {b:Board, r:List Robot, m:List Marker}
+type alias Model = {b:Board, r:List Robot, m:List Marker, c: Int}
 
 
 type Msg
@@ -89,19 +89,20 @@ view model =  let
                 showRobots model.r model.b.s,
                 showWalls (model.b.v ++ model.b.h) model.b.s,
                 showMarkers internalWalls model.m model.b.s,
-                button [ onClick (Start), style [("z-index","30")]] [text "start game"]
+                button [ onClick (Start), style [("z-index","30")]] [text "start game"],
+                div [] [text <| toString model.c]
                 ]
 
 baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
+baseGame = {b = emptyBoard 10, r = [], m= [], c = 0}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
+gameGenerator s w = map4 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2)) (int 0 0)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({m | r = (move (mv) m) :: rl}, Cmd.none)
+                              ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame game -> ({game | b = (mergeBoards (emptyBoard game.b.s) game.b)}, Cmd.none)
 
@@ -119,6 +120,7 @@ removeRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
+newGameCommand : Cmd Msg
 newGameCommand = generate NewGame (gameGenerator 16 25)
 
 init : {startTime : Float} -> (Model, Cmd Msg)
