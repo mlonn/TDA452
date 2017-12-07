@@ -1,7 +1,11 @@
-module Board exposing (..)
+module Board exposing (Board, boardGenerator)
+{-|  Board and its functions
+@docs Board
+@docs boardGenerator
+-}
 import Wall exposing (..)
 import Random exposing (..)
-
+{-| -}
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 
 emptyBoard : Int -> Board
@@ -28,7 +32,7 @@ makeVOutline s i = case i of
   0 -> []
   _ -> [((0,i), (1,i)), ((s,i),(s+1,i))] ++ makeVOutline s (i-1)
 
-
+{-| -}
 boardGenerator : Int -> Int -> Generator Board
 boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
 

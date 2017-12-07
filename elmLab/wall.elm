@@ -1,9 +1,16 @@
-module Wall exposing (..)
+module Wall exposing (Wall, vWallsGenerator, hWallsGenerator)
+{-|Wall
+@docs Wall
+@docs vWallsGenerator
+@docs hWallsGenerator
+-}
 import Common exposing (..)
 import Random exposing (pair, Generator, int, list, map)
 
+{-| -}
 type alias Wall = (Pos, Pos)
 
+{-| -}
 vWallsGenerator : Int -> Int -> Generator (List Wall)
 vWallsGenerator limit n = list n (vWallGenerator limit)
 
@@ -13,7 +20,7 @@ vWallGenerator limit = let
                         in
                           map (\(x,y) -> ((x,y), (x+1,y))) leftPos
 
-
+{-| -}
 hWallsGenerator : Int -> Int -> Generator (List Wall)
 hWallsGenerator limit n = list n (hWallGenerator limit)
 

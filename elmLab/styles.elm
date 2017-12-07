@@ -1,4 +1,16 @@
-module Styles exposing (..)
+module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, boardWrapper, wallWrapper, buttonStyle, robotImage)
+{-| css stylings
+@docs baseCell
+@docs robotCellStyle
+@docs robotStyle
+@docs wallStyle
+@docs wallBorderStyle
+@docs robotWrapper
+@docs boardWrapper
+@docs wallWrapper
+@docs buttonStyle
+@docs robotImage
+-}
 
 import Tuple exposing (first , second)
 import Robot exposing (..)
@@ -10,22 +22,12 @@ import Html.Attributes exposing (attribute, style)
 import Svg.Attributes exposing (fill)
 import InlineSvg exposing (..)
 
-{icon} =
-  inline
-        { robot = "./media/Robot.svg",
-          r = "./media/Right.svg",
-          l = "./media/Left.svg",
-          u  = "./media/Up.svg",
-          d  = "./media/Down.svg"
-        }
-
-
 put : Int -> Int -> List (String, String)
 put x y = [("grid-column", toString (x+1)), ("grid-row", toString (y+1))]
-
+{-| -}
 baseCell : Int -> Int -> Attribute msg
 baseCell x y = style (("border-style", "solid") :: put x y)
-
+{-| -}
 robotCellStyle : Robot -> Attribute msg
 robotCellStyle r = style (
   [
@@ -36,14 +38,14 @@ robotCellStyle r = style (
     ("grid-template-columns", "15% 70% 15%"),
     ("text-align", "center")
   ] ++ put (first r.p) (second r.p))
-
+{-| -}
 robotStyle : Color -> Attribute msg
 robotStyle c = style <| [("width","100%"), ("fill",toString c)] ++ (put 1 1)
-
+{-| -}
 wallStyle : ((Pos, Pos) -> Pos) -> Wall -> Attribute msg
 wallStyle f w = style ([
     wallBorderStyle f w] ++ (put (first (f w)) (second (f w))))
-
+{-| -}
 wallBorderStyle : ((Pos, Pos) -> Pos) -> Wall -> (String, String)
 wallBorderStyle f w =
   if f w == first w
@@ -52,13 +54,13 @@ wallBorderStyle f w =
 
 checkH : Wall -> Bool
 checkH w = second (first w) == second (second w)
-
+{-| -}
 boardWrapper : Int -> Attribute msg
 boardWrapper s = style (wrapper s)
-
+{-| -}
 robotWrapper : Int -> Attribute msg
 robotWrapper s = style (("z-index","20") :: wrapper s)
-
+{-| -}
 wallWrapper : Int -> Attribute msg
 wallWrapper s = style (("z-index", "10") :: wrapper s)
 
@@ -69,7 +71,7 @@ wrapper s = let screen = 900 in
   ("grid-auto-rows", concat [toString (screen//(s+2)), "px"]),
   ("position","absolute")
   ]
-
+{-| -}
 buttonStyle : Direction -> Attribute msg
 buttonStyle d = style (("width","100%") ::
                 (case d of
@@ -77,12 +79,6 @@ buttonStyle d = style (("width","100%") ::
                   S -> (put 1 2)
                   E -> (put 2 1)
                   W -> (put 0 1)))
-
+{-| -}
 robotImage : Color -> String
 robotImage c = concat ["media/", (toString c), "/Robot.svg"]
-
-svg r d = case d of
-          N -> icon .u [robotStyle r.c]
-          S -> icon .d [robotStyle r.c]
-          E -> icon .r [robotStyle r.c]
-          W -> icon .l [robotStyle r.c]

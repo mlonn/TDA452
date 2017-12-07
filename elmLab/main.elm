@@ -17,9 +17,10 @@ type alias Move = (Robot, Direction)
 
 type alias Model = {b:Board, r:List Robot, m:List Marker}
 
+
 type Msg
   = Move Move
-  | NewGame Game
+  | NewGame Model
   | Start
 
 move : Move -> Model -> Robot
@@ -63,7 +64,7 @@ showRobot r = div [robotCellStyle r]
     img [src "media/Left.svg", onClick (Move (r, W)), buttonStyle W] [],
     img [src "media/Right.svg", onClick (Move (r, E)), buttonStyle E] [],
     img [src "media/Down.svg", onClick (Move (r, S)), buttonStyle S] [],
-    img [src <| robotImage r.c, style (("width","100%") :: (put 1 1))] []
+    img [src <| robotImage r.c, robotStyle] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -78,15 +79,14 @@ view model = div [style [("display","inline-flex")]] [
   showBoard model.b.s,
   showRobots model.r model.b.s,
   showWalls (model.b.v ++ model.b.h) model.b.s,
-  button [ onClick (Start), style [("z-index","30")]] [text "start game"],
-  div [] [icon .robot []]
+  button [ onClick (Start), style [("z-index","30")]] [text "start game"]
   ]
 
-baseGame : Model
-baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
+-- baseGame : Model
+-- baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= [{c=Red, s=Moon}]}
 
-gameGenerator : Int -> Int -> Generator Game
-gameGenerator s w = map3 Game <| boardGenerator s w <| robotGenerator s | markerGenerator s
+gameGenerator : Int -> Int -> Generator Model
+gameGenerator s w = map3 Model <| boardGenerator s w <| robotsGenerator s <| markerGenerator s
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -107,7 +107,7 @@ removeRobot lr r =case lr of
   [] -> []
 
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (baseGame, generate NewGame (gameGenerator 10 10))
+init {startTime} = (gameGenerator 10 10, generate NewGame (gameGenerator 10 10))
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
