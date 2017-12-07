@@ -26,7 +26,7 @@ markersGenerator : Int -> Generator (List Marker)
 markersGenerator i = flattenList <| List.map (markerGenerator i) markerCombinations
 
 markerGenerator : Int -> (Symbol, Color) -> Generator Marker
-markerGenerator i (s, c) = map (mkMarker c s) (int 1 i)
+markerGenerator i (s, c) = map (mkMarker c s) (int 0 (i-1))
 
 mkMarker : Color -> Symbol -> Int -> Marker
 mkMarker c s i =   {c = c, s = s, i = i}

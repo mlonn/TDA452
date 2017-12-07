@@ -59,11 +59,7 @@ showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (map (showMarker lw) lm)
 
 showMarker : List Wall -> Marker -> Html Msg
-showMarker lw m = let
-                    w = getAt m.i lw
-                    fw = first w
-                  in
-                    img [src <| markerImage m.c m.s, markerStyle <| if first fw * second fw == 0 then second w else first w] []
+showMarker lw m = img [src <| markerImage m.c m.s, markerStyle <| first (getAt m.i lw)] []
 
 showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (map showRobot lr)
@@ -85,27 +81,32 @@ showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
 
 
 view : Model -> Html Msg
-view model = div [style [("display","inline-flex")]] [
-  showBoard model.b.s,
-  showRobots model.r model.b.s,
-  showWalls (model.b.v ++ model.b.h) model.b.s,
-  showMarkers ((drop model.b.s model.b.v) ++ (drop model.b.s model.b.h)) model.m model.b.s,
-  button [ onClick (Start), style [("z-index","30")]] [text "start game"]
-  ]
+view model =  let
+                internalWalls = (drop (model.b.s*2) model.b.v) ++ (drop (model.b.s*2) model.b.h)
+              in
+                div [style [("display","inline-flex")]] [
+                showBoard model.b.s,
+                showRobots model.r model.b.s,
+                showWalls (model.b.v ++ model.b.h) model.b.s,
+                showMarkers internalWalls model.m model.b.s,
+                button [ onClick (Start), style [("z-index","30")]] [text "start game"]
+                ]
 
 baseGame : Model
 baseGame = {b = emptyBoard 10, r = [{c=Red, p=(4,3)}, {c=Silver, p=(1,1)}], m= []}
 
 gameGenerator : Int -> Int -> Generator Model
-gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator w)
+gameGenerator s w = map3 Model (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let rl = removeRobot m.r (first mv) in
                               ({m | r = (move (mv) m) :: rl}, Cmd.none)
-              Start -> (m, generate NewGame (gameGenerator 10 5))
+              Start -> (m, newGameCommand)
               NewGame game -> ({game | b = (mergeBoards (emptyBoard game.b.s) game.b)}, Cmd.none)
 
+--fixCollision : List Wall -> List Marker -> List Wall
+--fixCollision :
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
                                       {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
@@ -118,8 +119,10 @@ removeRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
+newGameCommand = generate NewGame (gameGenerator 16 25)
+
 init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (baseGame, generate NewGame (gameGenerator 10 20))
+init {startTime} = (baseGame, newGameCommand)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =

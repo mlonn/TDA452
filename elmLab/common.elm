@@ -43,4 +43,4 @@ getAt : Int -> List a -> a
 getAt i l = case List.head <| List.drop i l of
               Just a -> a
               Nothing ->
-                  Debug.crash "TODO"
+                  Debug.crash "No such index"
