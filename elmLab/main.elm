@@ -10,8 +10,6 @@ import Robot exposing (..)
 import Board exposing (..)
 import Marker exposing (..)
 import Styles exposing (..)
-import InlineSvg exposing (..)
-import Svg.Attributes
 
 type alias Move = (Robot, Direction)
 
@@ -25,11 +23,17 @@ type Msg
   | NewGame Original
   | Start
   | Reset
+  | GameOver
 
-move : Move -> Model -> Robot
-move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
-                      then r
-                      else move ((moveRobot r d ), d) m
+move : Move -> Model -> (Robot, Cmd Msg)
+move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d) then
+                      (r, Cmd.none)
+                else if (isGoal m.m (moveRobot r d)) then
+                        (r, GameOver)
+                else move ((moveRobot r d ), d) m
+
+isGoal : List Marker -> Robot -> Bool
+isGoal lm r = member (r.p, r.c) (map (\x -> (x.p, x.c)) lm)
 
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (map (\x -> x.p) lr)
@@ -118,6 +122,7 @@ update msg m = case msg of
                               ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
+              GameOver -> ({m | c = 999}, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
 
 --fixCollision : List Wall -> List Marker -> List Wall
