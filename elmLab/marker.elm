@@ -7,7 +7,7 @@ module Marker exposing (Marker, Symbol, symbols, markersGenerator)
 -}
 
 import Common exposing (..)
-import Random exposing (..)
+import Random.Pcg as Random exposing (..)
 {-| -}
 type alias Marker = {c: Color, s: Symbol, i: Int}
 {-| -}

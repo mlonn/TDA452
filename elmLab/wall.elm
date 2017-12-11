@@ -7,7 +7,7 @@ module Wall exposing (Wall, vWallsGenerator, hWallsGenerator)
 import Common exposing (..)
 import Tuple exposing (first, second)
 import List exposing (length)
-import Random exposing (pair, Generator, int, list, map)
+import Random.Pcg as Random exposing (pair, Generator, int, list, map)
 
 {-| -}
 type alias Wall = (Pos, Pos)

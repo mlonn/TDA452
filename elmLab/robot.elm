@@ -1,14 +1,20 @@
-module Robot exposing (moveRobot, Robot, robotsGenerator)
+module Robot exposing (moveRobot, Robot, robotsGenerator, robot)
 {-| Robot package
 @docs moveRobot
 @docs robotsGenerator
 @docs Robot 
+@docs robot
 -}
 import Common exposing (..)
 import Tuple exposing (first, second)
-import Random exposing (..)
+import Random.Pcg as Random exposing (..)
+import Fuzz exposing (..)
 {-|Robot -}
 type alias Robot = {c: Color, p: Pos }
+
+{-|-}
+robot : Int -> Fuzzer Robot
+robot i = Fuzz.map2 Robot color (pos i)
 
 {-|moves a robot -}
 moveRobot : Robot -> Direction -> Robot
@@ -23,7 +29,7 @@ robotsGenerator : Int -> Generator (List Robot)
 robotsGenerator i = flattenList <| List.map (robotGenerator i) colors
 
 robotGenerator : Int -> Color -> Generator Robot
-robotGenerator i c = map (mkRobot c) (posGenerator i)
+robotGenerator i c = Random.map (mkRobot c) (posGenerator i)
 
 mkRobot : Color -> Pos -> Robot
 mkRobot c p = {c = c, p = p}

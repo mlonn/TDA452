@@ -5,7 +5,7 @@ module Board exposing (Board, emptyBoard, boardGenerator)
 @docs emptyBoard
 -}
 import Wall exposing (..)
-import Random exposing (..)
+import Random.Pcg as Random exposing (..)
 {-| -}
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 {-| -}
