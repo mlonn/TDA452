@@ -1,18 +1,20 @@
-module Board exposing (Board, emptyBoard, boardGenerator, prop_emptyBoard)
+module Board exposing (Board, emptyBoard, boardGenerator, prop_emptyBoard, Wall)
 {-|  Board and its functions
 @docs Board
 @docs boardGenerator
 @docs emptyBoard
 @docs prop_emptyBoard
+@docs Wall
 -}
-import Wall exposing (..)
 import Random.Pcg as Random exposing (..)
 import Test exposing (Test, fuzz, describe)
 import Fuzz
 import Expect
+import Common exposing (Pos)
 import List exposing (length)
 {-| -}
 type alias Wall = (Pos, Pos)
+{-| -}
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 {-| -}
 emptyBoard : Int -> Board

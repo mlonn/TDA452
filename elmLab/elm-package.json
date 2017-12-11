@@ -11,8 +11,7 @@
         "Robot",
         "Board",
         "Marker",
-        "Styles",
-        "Wall"
+        "Styles"
     ],
     "dependencies": {
         "elm-community/elm-test": "4.2.0 <= v < 5.0.0",
