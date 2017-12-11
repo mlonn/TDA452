@@ -12,6 +12,7 @@ import Fuzz
 import Expect
 import List exposing (length)
 {-| -}
+type alias Wall = (Pos, Pos)
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 {-| -}
 emptyBoard : Int -> Board

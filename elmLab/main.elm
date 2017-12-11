@@ -32,9 +32,10 @@ type Msg
   | Reset
 
 move : Move -> Model -> Robot
-move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d)
-                      then r
-                      else move ((moveRobot r d ), d) m
+move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d) then
+                  r
+                else
+                  move ((moveRobot r d ), d) m
 
 {-|-}
 prop_robot : Test
@@ -123,17 +124,22 @@ view : Model -> Html Msg
 view model =  let
                 internalWalls = (drop (model.b.s*2) model.b.v) ++ (drop (model.b.s*2) model.b.h)
               in
-                div [] [
-                  div [style [("display","inline-flex")]] [
+                div [style [("display","grid"),
+                            ("grid-template-columns","60% 40%"),
+                            ("align-items","center"),
+                            ("justify-content","center")
+                            ]]
+                  [
+                  div [style [("height", "900px")]] [
                     showBoard model.b.s,
                     showRobots model.r model.b.s,
                     showWalls (model.b.v ++ model.b.h) model.b.s,
                     showMarkers internalWalls model.m model.b.s
                   ],
-                  div [style [("display","inline-flex"), ("align-items", "center")]] [
+                  div [style [("display","inline-flex"), ("align-items", "center"), ("justify-content", "center"),("width", "100%")]] [
                     button [ onClick (Start), controlStyle ] [text "start game"],
                     button [ onClick (Reset), controlStyle ] [text "Reset"],
-                    div [] [text <| toString model.c]
+                    div [] [text <| String.concat ["Number of moves: ",(toString model.c)]]
                   ]
                 ]
 
