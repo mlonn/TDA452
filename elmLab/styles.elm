@@ -94,9 +94,10 @@ controlStyle = style [  ("z-index","30"),
                         ("border-radius" , " 10px"),
                         ("font-family" , " Courier New"),
                         ("color" , " #ffffff"),
-                        ("font-size" , " 50px"),
+                        ("font-size" , " 25px"),
                         ("background" , " #09cdda"),
-                        ("padding" , " 10px 20px 10px 20px"),
+                        ("padding" , " 5px 10px 5px 10px"),
+                        ("margin" , " 5px 10px 5px 10px"),
                         ("text-decoration" , " none") ]
 {-| -}
 robotImage : Color -> String
