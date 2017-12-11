@@ -22,14 +22,12 @@ emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
 {-|-}
 prop_emptyBoard : Test
 prop_emptyBoard = describe "checking empty generation"
-                      [ fuzz Fuzz.int "Checking size"
+                      [ fuzz (Fuzz.intRange 1 100) "Checking size"
                         (\i -> let b = emptyBoard i in (length b.v) + (length b.h) |> Expect.equal (i*4) )
                       ]
 
 generateHWalls : Int -> List Wall
-generateHWalls s = case s of
-  0 -> []
-  _ -> makeHOutline s s
+generateHWalls s = makeHOutline s s
 
 makeHOutline : Int -> Int -> List Wall
 makeHOutline s i = case i of
@@ -38,9 +36,7 @@ makeHOutline s i = case i of
 
 
 generateVWalls : Int -> List Wall
-generateVWalls s = case s of
-  0 -> []
-  _ -> makeVOutline s s
+generateVWalls s = makeVOutline s s
 
 makeVOutline : Int -> Int -> List Wall
 makeVOutline s i = case i of
