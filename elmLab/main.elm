@@ -14,7 +14,7 @@ import Robot exposing (..)
 import Board exposing (..)
 import Marker exposing (..)
 import Styles exposing (..)
-import Test exposing (Test, describe, test, fuzz2)
+import Test exposing (Test, describe, test, fuzz, fuzz2)
 import Fuzz exposing (..)
 import Expect
 
@@ -49,8 +49,15 @@ prop_robot = describe "Robot tests"
                       W -> first am.p |> Expect.equal 1
                       S -> second am.p |> Expect.equal 20
                       E -> first am.p |> Expect.equal 20
+                  ),
+                fuzz (Fuzz.list (robot 20)) "Testing remove"
+                  (\lr ->
+                    let fr = List.head lr in
+                    case fr of
+                     Just r -> member r (removeRobot lr r) |> Expect.equal False
+                     Nothing -> Expect.pass
                   )
-                ]
+              ]
 
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (List.map (\x -> x.p) lr)
