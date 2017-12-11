@@ -1,4 +1,4 @@
-module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, buttonStyle, robotImage, markerImage)
+module Styles exposing (controlStyle, baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, buttonStyle, robotImage, markerImage)
 {-| css stylings
 @docs baseCell
 @docs robotCellStyle
@@ -13,6 +13,7 @@ module Styles exposing (baseCell, robotCellStyle, robotStyle, wallStyle, wallBor
 @docs wallWrapper
 @docs buttonStyle
 @docs robotImage
+@docs controlStyle
 -}
 
 import Tuple exposing (first , second)
@@ -86,6 +87,17 @@ buttonStyle d = style (("width","100%") ::
                   S -> (put 1 2)
                   E -> (put 2 1)
                   W -> (put 0 1)))
+
+{-| -}
+controlStyle : Attribute msg
+controlStyle = style [  ("z-index","30"),
+                        ("border-radius" , " 10px"),
+                        ("font-family" , " Courier New"),
+                        ("color" , " #ffffff"),
+                        ("font-size" , " 50px"),
+                        ("background" , " #09cdda"),
+                        ("padding" , " 10px 20px 10px 20px"),
+                        ("text-decoration" , " none") ]
 {-| -}
 robotImage : Color -> String
 robotImage c = concat ["media/", (toString c), "/Robot.svg"]

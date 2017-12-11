@@ -87,15 +87,18 @@ view : Model -> Html Msg
 view model =  let
                 internalWalls = (drop (model.b.s*2) model.b.v) ++ (drop (model.b.s*2) model.b.h)
               in
-                div [style [("display","inline-flex")]] [
-                showBoard model.b.s,
-                showRobots model.r model.b.s,
-                showWalls (model.b.v ++ model.b.h) model.b.s,
-                showMarkers internalWalls model.m model.b.s,
-                button [ onClick (Start), style [("z-index","30")]] [text "start game"],
-                button [ onClick (Reset), style [("z-index","30")]] [text "Reset"],
-                div [] [text <| toString model.c]
-
+                div [] [
+                  div [style [("display","inline-flex")]] [
+                    showBoard model.b.s,
+                    showRobots model.r model.b.s,
+                    showWalls (model.b.v ++ model.b.h) model.b.s,
+                    showMarkers internalWalls model.m model.b.s
+                  ],
+                  div [style [("display","inline-flex"), ("align-items", "center")]] [
+                    button [ onClick (Start), controlStyle ] [text "start game"],
+                    button [ onClick (Reset), controlStyle ] [text "Reset"],
+                    div [] [text <| toString model.c]
+                  ]
                 ]
 
 baseGame : Original
@@ -110,7 +113,7 @@ update msg m = case msg of
                               ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
-              Reset -> ({m | b = m.og.b, r = m.og.r, m = m.og.m, c = 0}, Cmd.none)
+              Reset -> (originalToModel m.og, Cmd.none)
 
 --fixCollision : List Wall -> List Marker -> List Wall
 --fixCollision :
