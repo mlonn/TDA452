@@ -1,4 +1,4 @@
-module Example exposing (..)
+module Tests exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -7,8 +7,9 @@ import Main exposing (prop_robot)
 
 
 suite : Test
-suite = prop_robot 
-
+suite = describe "all the tests"
+    [ prop_robot
+    ]
 
 
     -- todo "Implement our first test. See http://package.elm-lang.org/packages/elm-community/elm-test/latest for how to do this!"
