@@ -7,6 +7,7 @@ module Board exposing (Board, emptyBoard, boardGenerator)
 import Wall exposing (..)
 import Random.Pcg as Random exposing (..)
 {-| -}
+type alias Wall = (Pos, Pos)
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 {-| -}
 emptyBoard : Int -> Board
