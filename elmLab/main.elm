@@ -1,6 +1,10 @@
+module Main exposing (prop_robot)
+{-| The main file
+@docs prop_robot
+-}
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
-import Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
+import Random.Pcg as Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
 import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style, class, src)
@@ -10,6 +14,9 @@ import Robot exposing (..)
 import Board exposing (..)
 import Marker exposing (..)
 import Styles exposing (..)
+import Test exposing (Test, describe, test, fuzz2)
+import Fuzz exposing (..)
+import Expect
 
 type alias Move = (Robot, Direction)
 
@@ -23,27 +30,38 @@ type Msg
   | NewGame Original
   | Start
   | Reset
-  | GameOver
 
-move : Move -> Model -> (Robot, Cmd Msg)
+move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d) then
-                      (r, Cmd.none)
-                else if (isGoal m.m (moveRobot r d)) then
-                        (r, GameOver)
-                else move ((moveRobot r d ), d) m
+                  r
+                else
+                  move ((moveRobot r d ), d) m
 
-isGoal : List Marker -> Robot -> Bool
-isGoal lm r = member (r.p, r.c) (map (\x -> (x.p, x.c)) lm)
+{-|-}
+prop_robot : Test
+prop_robot = describe "Robot tests"
+              [ fuzz2 (robot 20) direction "Should move until wall"
+                (\r d ->
+                  let
+                    am = move (r, d) {b= emptyBoard 20,r= [r],m= [],c= 0,og={b=emptyBoard 20, r=[r], m=[]}}
+                  in
+                    case d of
+                      N -> second am.p |> Expect.equal 1
+                      W -> first am.p |> Expect.equal 1
+                      S -> second am.p |> Expect.equal 20
+                      E -> first am.p |> Expect.equal 20
+                  )
+                ]
 
 isRobot : List Robot -> Robot -> Bool
-isRobot lr r = member r.p (map (\x -> x.p) lr)
+isRobot lr r = member r.p (List.map (\x -> x.p) lr)
 
 isWall : Pos -> Direction -> Board -> Bool
 isWall p d b = case d of
-  N -> (member p (map second b.h))
-  S -> (member p (map first b.h))
-  W -> (member p (map second b.v))
-  E -> (member p (map first b.v))
+  N -> (member p (List.map second b.h))
+  S -> (member p (List.map first b.h))
+  W -> (member p (List.map second b.v))
+  E -> (member p (List.map first b.v))
 
 showBoard : Int -> Html Msg
 showBoard i = div [boardWrapper i] (makeCells (i) (i))
@@ -63,13 +81,13 @@ makeCell : Int -> Int -> Html Msg
 makeCell s i = div [baseCell s i] []
 
 showMarkers :  List Wall -> List Marker -> Int -> Html Msg
-showMarkers lw lm s = div[markerWrapper s] (map (showMarker lw) lm)
+showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
 showMarker : List Wall -> Marker -> Html Msg
 showMarker lw m = img [src <| markerImage m.c m.s, markerStyle <| first (getAt m.i lw)] []
 
 showRobots : List Robot -> Int -> Html Msg
-showRobots lr s = div [robotWrapper s] (map showRobot lr)
+showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
 
 showRobot : Robot -> Html Msg
 showRobot r = div [robotCellStyle r]
@@ -81,7 +99,7 @@ showRobot r = div [robotCellStyle r]
   ]
 
 showWalls : List Wall -> Int -> Html Msg
-showWalls lw s = div [wallWrapper s] (List.concat (map showWall lw))
+showWalls lw s = div [wallWrapper s] (List.concat (List.map showWall lw))
 
 showWall : Wall -> List (Html Msg)
 showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
@@ -114,7 +132,7 @@ baseGame : Original
 baseGame = {b = emptyBoard 10, r = [], m= []}
 
 gameGenerator : Int -> Int -> Generator Original
-gameGenerator s w = map3 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
+gameGenerator s w = Random.map3 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -122,7 +140,6 @@ update msg m = case msg of
                               ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
-              GameOver -> ({m | c = 999}, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
 
 --fixCollision : List Wall -> List Marker -> List Wall
