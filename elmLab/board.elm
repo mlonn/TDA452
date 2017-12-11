@@ -1,16 +1,27 @@
-module Board exposing (Board, emptyBoard, boardGenerator)
+module Board exposing (Board, emptyBoard, boardGenerator, prop_emptyBoard)
 {-|  Board and its functions
 @docs Board
 @docs boardGenerator
 @docs emptyBoard
+@docs prop_emptyBoard
 -}
 import Wall exposing (..)
 import Random.Pcg as Random exposing (..)
+import Test exposing (Test, fuzz, describe)
+import Fuzz
+import Expect
+import List exposing (length)
 {-| -}
 type alias Board = { v : List Wall, h : List Wall, s : Int}
 {-| -}
 emptyBoard : Int -> Board
 emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
+{-|-}
+prop_emptyBoard : Test
+prop_emptyBoard = describe "checking empty generation"
+                      [ fuzz Fuzz.int "Checking size"
+                        (\i -> let b = emptyBoard i in (length b.v) + (length b.h) |> Expect.equal (i*4) )
+                      ]
 
 generateHWalls : Int -> List Wall
 generateHWalls s = case s of

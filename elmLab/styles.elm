@@ -29,7 +29,8 @@ put : Int -> Int -> List (String, String)
 put x y = [("grid-column", toString (x+1)), ("grid-row", toString (y+1))]
 {-| -}
 baseCell : Int -> Int -> Attribute msg
-baseCell x y = style (("border-style", "solid") :: put x y)
+baseCell x y = style ([("border-style", "solid"), ("border-width", "1px"), ("border-color", "#757575"), ("background", "repeating-linear-gradient(45deg, #bcaaa4, #bcaaa4 2px, #a1887f 2px, #a1887f 4px)")] ++ put x y)
+
 {-| -}
 robotCellStyle : Robot -> Attribute msg
 robotCellStyle r = style (
@@ -53,9 +54,10 @@ wallStyle f w = style ([
 {-| -}
 wallBorderStyle : ((Pos, Pos) -> Pos) -> Wall -> (String, String)
 wallBorderStyle f w =
+  let ws = "solid 2px #212d35" in
   if f w == first w
-  then ( if checkH w then ("border-right","solid red") else ("border-bottom","solid red") )
-  else ( if checkH w then ("border-left","solid red") else ("border-top","solid red") )
+  then ( if checkH w then ("border-right", ws) else ("border-bottom", ws) )
+  else ( if checkH w then ("border-left", ws) else ("border-top", ws) )
 
 checkH : Wall -> Bool
 checkH w = second (first w) == second (second w)

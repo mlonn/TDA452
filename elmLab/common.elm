@@ -12,10 +12,13 @@ module Common exposing (..)
 @docs posShrink
 @docs direction
 @docs color
+@docs unique
+@docs uniqueHelp
 -}
 import Fuzz exposing (..)
 import Random.Pcg as Random exposing (Generator, pair, int, map2)
 import Shrink
+import Set exposing (Set)
 
 {-| Direction -}
 type Direction = N | S | W | E
@@ -73,3 +76,22 @@ getAt i l = case List.head <| List.drop i l of
               Just a -> a
               Nothing ->
                   Debug.crash "No such index"
+
+{-| Remove all duplicates from a list and return a list of distinct elements.
+-}
+unique : List comparable -> List comparable
+unique list =
+  uniqueHelp Set.empty list
+
+{-|-}
+uniqueHelp : Set comparable -> List comparable -> List comparable
+uniqueHelp existing remaining =
+  case remaining of
+    [] ->
+      []
+
+    first :: rest ->
+      if Set.member first existing then
+        uniqueHelp existing rest
+      else
+        first :: uniqueHelp (Set.insert first existing) rest

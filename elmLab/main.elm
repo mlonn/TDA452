@@ -54,9 +54,17 @@ prop_robot = describe "Robot tests"
                   (\lr ->
                     let fr = List.head lr in
                     case fr of
-                     Just r -> member r (removeRobot lr r) |> Expect.equal False
+                     Just r -> member r (removeRobot (List.filter (\x -> x.c /= r.c && r.p /= x.p) lr) r) |> Expect.equal False
+                     Nothing -> Expect.pass
+                  ),
+                fuzz (Fuzz.list (robot 20)) "Testing size remove"
+                  (\lr ->
+                    let fr = List.head lr in
+                    case fr of
+                     Just r -> List.length (removeRobot lr r) |> Expect.equal ((List.length lr) - 1)
                      Nothing -> Expect.pass
                   )
+
               ]
 
 isRobot : List Robot -> Robot -> Bool
