@@ -14,6 +14,8 @@ module Common exposing (..)
 @docs color
 @docs unique
 @docs uniqueHelp
+@docs colorGenerator
+@docs intToColor
 -}
 import Fuzz exposing (..)
 import Random.Pcg as Random exposing (Generator, pair, int, map2)
@@ -50,6 +52,17 @@ type Color = Red | Blue | Silver | Yellow | Green
 {-| -}
 color : Fuzzer Color
 color = Fuzz.oneOf (List.map Fuzz.constant colors)
+{-| -}
+colorGenerator : Generator Color
+colorGenerator = Random.map intToColor (Random.int 1 5)
+{-| colors -}
+intToColor : Int -> Color
+intToColor i = case i of
+                1 -> Red
+                2 -> Blue
+                3 -> Silver
+                4 -> Yellow
+                _ -> Green
 
 {-| colors -}
 colors : List Color

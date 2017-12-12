@@ -19,9 +19,9 @@ import Expect
 
 type alias Move = (Robot, Direction)
 
-type alias Original = {b:Board, r:List Robot, m:List Marker}
+type alias Original = {b:Board, r:List Robot, m:List Marker, gm: Marker}
 
-type alias Model = {b:Board, r:List Robot, m:List Marker, c:Int, og:Original}
+type alias Model = {b:Board, r:List Robot, m:List Marker, c:Int,og:Original}
 
 
 type Msg
@@ -29,6 +29,8 @@ type Msg
   | NewGame Original
   | Start
   | Reset
+  | NewMarker Marker
+  | NextMarker
 
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d) then
@@ -42,7 +44,7 @@ prop_robot = describe "Robot tests"
               [ fuzz2 (robot 20) direction "Should move until wall"
                 (\r d ->
                   let
-                    am = move (r, d) {b= emptyBoard 20,r= [r],m= [],c= 0,og={b=emptyBoard 20, r=[r], m=[]}}
+                    am = move (r, d) {b= emptyBoard 20,r= [r],m= [],c= 0,og={b=emptyBoard 20, r=[r], m=[], gm = {c = Red, s = Moon, i = 0}} }
                   in
                     case d of
                       N -> second am.p |> Expect.equal 1
@@ -94,6 +96,9 @@ makeRow s i =
 makeCell : Int -> Int -> Html Msg
 makeCell s i = div [baseCell s i] []
 
+showGoalMarker : Marker -> Html Msg
+showGoalMarker m = img [src <| markerImage m.c m.s] []
+
 showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
@@ -124,7 +129,7 @@ view model =  let
                 internalWalls = (drop (model.b.s*2) model.b.v) ++ (drop (model.b.s*2) model.b.h)
               in
                 div [style [("display","grid"),
-                            ("grid-template-columns","60% 40%"),
+                            ("grid-template-columns","900px 200px"),
                             ("align-items","center"),
                             ("justify-content","center")
                             ]]
@@ -135,18 +140,20 @@ view model =  let
                     showWalls (model.b.v ++ model.b.h) model.b.s,
                     showMarkers internalWalls model.m model.b.s
                   ],
-                  div [style [("display","inline-flex"), ("align-items", "center"), ("justify-content", "center"),("width", "100%")]] [
-                    button [ onClick (Start), controlStyle ] [text "start game"],
+                  div [style [("display","inline-flex"), ("flex-direction","column"),("align-items", "center"), ("justify-content", "center"),("width", "100%")]] [
+                    showGoalMarker model.og.gm,
+                    button [ onClick (Start), controlStyle ] [text "New game"],
+                    button [ onClick (NextMarker), controlStyle ] [text "Next marker"],
                     button [ onClick (Reset), controlStyle ] [text "Reset"],
-                    div [] [text <| String.concat ["Number of moves: ",(toString model.c)]]
+                    div [style [("font-size" , " 20px")]] [text <| String.concat ["Number of moves: ",(toString model.c)]]
                   ]
                 ]
 
 baseGame : Original
-baseGame = {b = emptyBoard 10, r = [], m= []}
+baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0}}
 
 gameGenerator : Int -> Int -> Generator Original
-gameGenerator s w = Random.map3 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2))
+gameGenerator s w = Random.map4 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2)) (markerGenerator)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -155,6 +162,8 @@ update msg m = case msg of
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
+              NewMarker marker -> ({m | og = {b = m.og.b, r = m.og.r, m = m.og.m, gm = marker}}, Cmd.none)
+              NextMarker  -> (m, generate NewMarker markerGenerator )
 
 --fixCollision : List Wall -> List Marker -> List Wall
 --fixCollision :
