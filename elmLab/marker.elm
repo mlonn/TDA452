@@ -15,7 +15,7 @@ module Marker exposing (..)
 import Common exposing (..)
 import Random.Pcg as Random exposing (..)
 {-| -}
-type alias Marker = {c: Color, s: Symbol, i: Int}
+type alias Marker = {c: Color, s: Symbol, i: Int, r: Int}
 {-| -}
 type Symbol = Moon | Planet | Star | Gear
 {-| -}
@@ -42,10 +42,10 @@ markersGenerator : Int -> Generator (List Marker)
 markersGenerator i = flattenList <| List.map (markerGeneratorIndex i) markerCombinations
 {-| -}
 markerGeneratorIndex : Int -> (Symbol, Color) -> Generator Marker
-markerGeneratorIndex i (s, c) = Random.map (mkMarker c s) (Random.int 0 (i-1))
+markerGeneratorIndex i (s, c) = Random.map2 (mkMarker c s) (Random.int 0 (i-1)) (Random.int 0 1)
 {-| -}
 markerGenerator : Generator Marker
-markerGenerator = Random.map3 Marker colorGenerator symbolGenerator (Random.int 0 0)
+markerGenerator = Random.map4 Marker colorGenerator symbolGenerator (Random.int 0 0) (Random.int 0 1)
 {-| -}
-mkMarker : Color -> Symbol -> Int -> Marker
-mkMarker c s i =   {c = c, s = s, i = i}
+mkMarker : Color -> Symbol -> Int -> Int -> Marker
+mkMarker c s i r =   {c = c, s = s, i = i, r = r}

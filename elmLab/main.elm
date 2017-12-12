@@ -44,7 +44,7 @@ prop_robot = describe "Robot tests"
               [ fuzz2 (robot 20) direction "Should move until wall"
                 (\r d ->
                   let
-                    am = move (r, d) {b= emptyBoard 20,r= [r],m= [],c= 0,og={b=emptyBoard 20, r=[r], m=[], gm = {c = Red, s = Moon, i = 0}} }
+                    am = move (r, d) {b= emptyBoard 20,r= [r],m= [],c= 0,og={b=emptyBoard 20, r=[r], m=[], gm = {c = Red, s = Moon, i = 0, r = 0}} }
                   in
                     case d of
                       N -> second am.p |> Expect.equal 1
@@ -97,13 +97,17 @@ makeCell : Int -> Int -> Html Msg
 makeCell s i = div [baseCell s i] []
 
 showGoalMarker : Marker -> Html Msg
-showGoalMarker m = img [src <| markerImage m.c m.s] []
+showGoalMarker m = img [src <| markerImage m.c m.s, style [("margin","62 px 62 px 62 px 62 px")]] []
 
 showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
 showMarker : List Wall -> Marker -> Html Msg
-showMarker lw m = img [src <| markerImage m.c m.s, markerStyle <| first (getAt m.i lw)] []
+showMarker lw m = if m.r == 0 then
+                      img [src <| markerImage m.c m.s, markerStyle <| first (getAt m.i lw)] []
+                    else
+                      img [src <| markerImage m.c m.s, markerStyle <| second (getAt m.i lw)] []
+
 
 showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
@@ -150,7 +154,7 @@ view model =  let
                 ]
 
 baseGame : Original
-baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0}}
+baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0, r = 0}}
 
 gameGenerator : Int -> Int -> Generator Original
 gameGenerator s w = Random.map4 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2)) (markerGenerator)

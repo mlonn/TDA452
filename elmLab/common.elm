@@ -54,14 +54,13 @@ color : Fuzzer Color
 color = Fuzz.oneOf (List.map Fuzz.constant colors)
 {-| -}
 colorGenerator : Generator Color
-colorGenerator = Random.map intToColor (Random.int 1 5)
+colorGenerator = Random.map intToColor (Random.int 1 4)
 {-| colors -}
 intToColor : Int -> Color
 intToColor i = case i of
                 1 -> Red
                 2 -> Blue
-                3 -> Silver
-                4 -> Yellow
+                3 -> Yellow
                 _ -> Green
 
 {-| colors -}
