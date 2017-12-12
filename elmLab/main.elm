@@ -166,7 +166,7 @@ update msg m = case msg of
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
-              NewMarker marker -> ({m | og = {b = m.og.b, r = m.og.r, m = m.og.m, gm = marker}}, Cmd.none)
+              NewMarker marker -> ({m | og = {b = m.b, r = m.r, m = m.og.m, gm = marker}, c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
 
 --fixCollision : List Wall -> List Marker -> List Wall
