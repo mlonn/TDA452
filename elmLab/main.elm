@@ -29,6 +29,7 @@ type Msg
   | NewGame Original
   | Start
   | Reset
+  | Win Robot
 
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.b || isRobot m.r (moveRobot r d) then
@@ -66,6 +67,24 @@ prop_robot = describe "Robot tests"
                   )
 
               ]
+
+cs : Robot -> Model -> Bool
+cs r m = if r.c /= m.gm.c then False
+         else
+            if r.p == ((internalWalls m.w)!(List.head (List.filter (\x -> x.c == m.gm.c && x.s == m.gm.s) m.m)).i).p then True else False
+
+
+prop_win : Test
+prop_win = describe "tests for winning"
+  [
+    fuzz2 robot symbol "" (
+    \r s -> let
+              m = {c=r.c, s=s, i=0}
+              lw =[((r.pos),(r.pos))]
+            in
+              cs r m |> Expect.equal True
+    )
+  ]
 
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (List.map (\x -> x.p) lr)
@@ -118,10 +137,12 @@ showWalls lw s = div [wallWrapper s] (List.concat (List.map showWall lw))
 showWall : Wall -> List (Html Msg)
 showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
 
+internalWalls : Model -> List Wall
+internalWalls m = (drop (m.b.s*2) m.b.v) ++ (drop (m.b.s*2) m.b.h)
 
 view : Model -> Html Msg
 view model =  let
-                internalWalls = (drop (model.b.s*2) model.b.v) ++ (drop (model.b.s*2) model.b.h)
+                iw = internalWalls model
               in
                 div [style [("display","grid"),
                             ("grid-template-columns","60% 40%"),
@@ -133,7 +154,7 @@ view model =  let
                     showBoard model.b.s,
                     showRobots model.r model.b.s,
                     showWalls (model.b.v ++ model.b.h) model.b.s,
-                    showMarkers internalWalls model.m model.b.s
+                    showMarkers iw model.m model.b.s
                   ],
                   div [style [("display","inline-flex"), ("align-items", "center"), ("justify-content", "center"),("width", "100%")]] [
                     button [ onClick (Start), controlStyle ] [text "start game"],
@@ -150,8 +171,14 @@ gameGenerator s w = Random.map3 Original (boardGenerator s w) (robotsGenerator s
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
-              Move mv -> let rl = removeRobot m.r (first mv) in
-                              ({m | r = (move (mv) m) :: rl, c = m.c+1}, Cmd.none)
+              Move mv -> let
+                            rl = removeRobot m.r (first mv)
+                            mr = (move (mv) m)
+                            am = {m | r = mr :: rl, c = m.c+1}
+                         in
+                          if cs rl m
+                            then (am, Win mr)
+                            else (am, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame game -> (originalToModel game, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
