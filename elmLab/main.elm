@@ -97,7 +97,7 @@ cs m =
 prop_win : Test
 prop_win = describe "tests for winning"
   [
-    fuzz2 (robot 20) symbol "Winning?" (
+    fuzz2 (robot 20) symbol "Should win" (
     \r s -> let
               mark = {c = r.c, s = s, i = 0, r= 0}
               m = {r=[r],
@@ -109,6 +109,15 @@ prop_win = describe "tests for winning"
               lw =[((r.p),(r.p))]
             in
               cs m |> Expect.equal True
+    ),
+    fuzz2 (robot 20) symbol "Should not win" (
+    \r s -> let
+              mark = {c = r.c, s = s, i = 0, r= 0}
+              m = {r=[r], c=0, og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20} , r = [r], m= [mark], gm = mark}}
+              notRpos = (1 + first r.p, second r.p)
+              lw =[(notRpos, notRpos)]
+            in
+              cs m |> Expect.equal False
     )
   ]
 
