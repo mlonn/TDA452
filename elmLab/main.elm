@@ -1,13 +1,13 @@
 module Main exposing (prop_robot,
                       prop_win)
 {-| The main file
-@docs prop_robot
-@docs prop_win
+@dohasWon prop_robot
+@dohasWon prop_win
 -}
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
 import Random.Pcg as Random exposing (Generator, generate)
-import Html exposing (program, Html, div, text, Attribute, button, img)
+import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style, class, src, classList)
 import Common exposing (..)
@@ -40,7 +40,12 @@ move (r , d) m = if isWall r.p d m.og.b || isRobot m.r (moveRobot r d) then
                 else
                   move ((moveRobot r d ), d) m
 
-{-|-}
+{-|
+Test for robots,
+    Tests that robots stops at walls,
+    Removing a robot from robots such that that robot is removed and the list
+    of robots is one shorter.
+-}
 prop_robot : Test
 prop_robot = describe "Robot tests"
   [ fuzz2 (robot 20) direction "Should move until wall"
@@ -75,9 +80,9 @@ prop_robot = describe "Robot tests"
       )
 
   ]
-
-cs : Model -> Bool
-cs m =
+{-| Returns true if a robot of correct color is on the goal marker (gm)-}
+hasWon : Model -> Bool
+hasWon m =
   case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
     Just r -> case List.head
                     (List.filter
@@ -93,7 +98,8 @@ cs m =
                 Nothing -> False
     Nothing -> False
 
-{-| -}
+{-| test the hasWon function with hard coded moves that should or should
+    not win with random robots-}
 prop_win : Test
 prop_win = describe "tests for winning"
   [
@@ -108,22 +114,28 @@ prop_win = describe "tests for winning"
                   gm = mark}}
               lw =[((r.p),(r.p))]
             in
-              cs m |> Expect.equal True
+              hasWon m |> Expect.equal True
     ),
     fuzz2 (robot 20) symbol "Should not win" (
     \r s -> let
               mark = {c = r.c, s = s, i = 0, r= 0}
-              m = {r=[r], c=0, og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20} , r = [r], m= [mark], gm = mark}}
+              m = {r=[r],
+                    c=0,
+                    og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20},
+                    r = [r], m= [mark],
+                    gm = mark}}
               notRpos = (1 + first r.p, second r.p)
               lw =[(notRpos, notRpos)]
             in
-              cs m |> Expect.equal False
+              hasWon m |> Expect.equal False
     )
   ]
 
+{-| Checks is a robot shares posotion with another robot-}
 isRobot : List Robot -> Robot -> Bool
 isRobot lr r = member r.p (List.map (\x -> x.p) lr)
 
+{-|Checiks if a there is a wall in a given direction from a position-}
 isWall : Pos -> Direction -> Board -> Bool
 isWall p d b = case d of
   N -> (member p (List.map second b.h))
@@ -131,29 +143,36 @@ isWall p d b = case d of
   W -> (member p (List.map second b.v))
   E -> (member p (List.map first b.v))
 
+{-| Generates html code to show a board-}
 showBoard : Int -> Html Msg
 showBoard i = div [boardWrapper i] (makeCells (i) (i))
 
+{-| Generates html code for all cells given a dimension-}
 makeCells : Int -> Int -> List (Html Msg)
 makeCells s i = case i of
   0 -> []
   _ -> makeRow s i ++ makeCells s (i-1)
 
+{-| Generates html code for a row of cells-}
 makeRow : Int -> Int -> List (Html Msg)
 makeRow s i =
   case s of
     0 -> []
     _ -> makeCell s i :: makeRow (s-1) i
 
+{-| Generates html code for a single cell-}
 makeCell : Int -> Int -> Html Msg
 makeCell s i = div [class "base-cell", style <| put s i] []
 
+{-| Generate html code for the goal marker -}
 showGoalMarker : Marker -> Html Msg
 showGoalMarker m = img [src <| markerImage m.c m.s, class "goal-marker"] []
 
+{-| Generates html code for all markers-}
 showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
+{-| Generates html code for a marker-}
 showMarker : List Wall -> Marker -> Html Msg
 showMarker lw m =
   let
@@ -221,7 +240,7 @@ showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
 internalWalls : Original -> List Wall
 internalWalls og = (drop (og.b.s*2) og.b.v) ++ (drop (og.b.s*2) og.b.h)
 
-view : Model -> Html Msg
+view : {screenHeight : Float} -> Model -> Html Msg
 view model =
   let
     iw = internalWalls model.og
@@ -252,7 +271,7 @@ view model =
                                                         (toString model.c)]
                               ]
                     ],
-                    if cs model then
+                    if hasWon model then
                       div [ class "win"]  [
                             div [ class "win-content",
                                   style [("grid-row","2")]] [
@@ -355,8 +374,8 @@ removeRobot lr r =case lr of
 newGameCommand : Cmd Msg
 newGameCommand = generate NewGame (gameGenerator 16 25)
 
-init : (Model, Cmd Msg)
-init = (originalToModel baseGame, newGameCommand)
+init : {screenHeight : Float} -> (Model, Cmd Msg)
+init {screenHeight} = (originalToModel baseGame, newGameCommand)
 
 originalToModel : Original -> Model
 originalToModel og = {
@@ -371,7 +390,7 @@ subscriptions model =
 
 
 main : Program Never Model Msg
-main = program {init = init,
+main = programWithFlags {init = init,
                 view = view,
                 update = update,
                 subscriptions = subscriptions}
