@@ -43,6 +43,10 @@
   margin-top: 5%;
   margin-left: 5%;
 }
+
+.goal-marker {
+  width: 200px;
+}
 .btn {
   border-radius:  10px;
   font-family:  Courier New;

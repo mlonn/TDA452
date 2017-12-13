@@ -1,14 +1,12 @@
-module Main exposing (prop_robot, prop_win, checkOverlap, gameGenerator, internalWalls)
+module Main exposing (prop_robot,
+                      prop_win)
 {-| The main file
 @docs prop_robot
 @docs prop_win
-@docs checkOverlap
-@docs gameGenerator
-@docs internalWalls
 -}
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
-import Random.Pcg as Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
+import Random.Pcg as Random exposing (Generator, generate)
 import Html exposing (program, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style, class, src, classList)
@@ -23,9 +21,9 @@ import Expect
 
 type alias Move = (Robot, Direction)
 
-type alias Original = { b : Board, r : List Robot, m : List Marker, gm : Marker}
+type alias Original = {b: Board, r: List Robot, m: List Marker, gm: Marker}
 
-type alias Model = {r:List Robot, c:Int, og:Original}
+type alias Model = {r: List Robot, c: Int, og: Original}
 
 
 type Msg
@@ -45,46 +43,55 @@ move (r , d) m = if isWall r.p d m.og.b || isRobot m.r (moveRobot r d) then
 {-|-}
 prop_robot : Test
 prop_robot = describe "Robot tests"
-              [ fuzz2 (robot 20) direction "Should move until wall"
-                (\r d ->
-                  let
-                    am = move (r, d) {r= [r],c= 0,og={b=emptyBoard 20, r=[r], m=[], gm = {c = Red, s = Moon, i = 0, r=0}} }
-                  in
-                    case d of
-                      N -> second am.p |> Expect.equal 1
-                      W -> first am.p |> Expect.equal 1
-                      S -> second am.p |> Expect.equal 20
-                      E -> first am.p |> Expect.equal 20
-                  ),
-                fuzz (Fuzz.list (robot 20)) "Testing remove"
-                  (\lr ->
-                    let fr = List.head lr in
-                    case fr of
-                     Just r -> member r (removeRobot (List.filter (\x -> x.c /= r.c && r.p /= x.p) lr) r) |> Expect.equal False
-                     Nothing -> Expect.pass
-                  ),
-                fuzz (Fuzz.list (robot 20)) "Testing size remove"
-                  (\lr ->
-                    let fr = List.head lr in
-                    case fr of
-                     Just r -> List.length (removeRobot lr r) |> Expect.equal ((List.length lr) - 1)
-                     Nothing -> Expect.pass
-                  )
+  [ fuzz2 (robot 20) direction "Should move until wall"
+    (\r d ->
+      let
+        am = move (r, d)
+                  {r= [r],c= 0,og={b=emptyBoard 20, r=[r], m=[],
+                      gm = {c = Red, s = Moon, i = 0, r=0}}}
+      in
+        case d of
+          N -> second am.p |> Expect.equal 1
+          W -> first am.p |> Expect.equal 1
+          S -> second am.p |> Expect.equal 20
+          E -> first am.p |> Expect.equal 20
+      ),
+    fuzz (Fuzz.list (robot 20)) "Testing remove"
+      (\lr ->
+        let fr = List.head lr in
+        case fr of
+         Just r -> member r (removeRobot (List.filter
+                                      (\x -> x.c /= r.c && r.p /= x.p) lr) r)
+                                      |> Expect.equal False
+         Nothing -> Expect.pass
+      ),
+    fuzz (Fuzz.list (robot 20)) "Testing size remove"
+      (\lr ->
+        let fr = List.head lr in
+        case fr of
+         Just r -> List.length (removeRobot lr r)
+                                      |> Expect.equal ((List.length lr) - 1)
+         Nothing -> Expect.pass
+      )
 
-              ]
+  ]
 
 cs : Model -> Bool
-cs m = case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
-        Just r -> case List.head (List.filter (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
-             Just mark -> let w =
-                            (getAt mark.i (internalWalls m.og))
-                          in
-                            if mark.r == 0 then
-                              r.p == first w
-                            else
-                              r.p == second w
-             Nothing -> False
-        Nothing -> False
+cs m =
+  case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
+    Just r -> case List.head
+                    (List.filter
+                      (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
+                Just mark -> let w =
+                              (getAt mark.i (internalWalls m.og))
+                             in
+                              r.p ==
+                                (if mark.r == 0 then
+                                  first
+                                else
+                                  second) w
+                Nothing -> False
+    Nothing -> False
 
 {-| -}
 prop_win : Test
@@ -93,7 +100,12 @@ prop_win = describe "tests for winning"
     fuzz2 (robot 20) symbol "Winning?" (
     \r s -> let
               mark = {c = r.c, s = s, i = 0, r= 0}
-              m = {r=[r], c=0, og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20} , r = [r], m= [mark], gm = mark}}
+              m = {r=[r],
+                  c=0,
+                  og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20},
+                  r = [r],
+                  m= [mark],
+                  gm = mark}}
               lw =[((r.p),(r.p))]
             in
               cs m |> Expect.equal True
@@ -128,19 +140,24 @@ makeCell : Int -> Int -> Html Msg
 makeCell s i = div [class "base-cell", style <| put s i] []
 
 showGoalMarker : Marker -> Html Msg
-showGoalMarker m = img [src <| markerImage m.c m.s, style [("margin","62 px 62 px 62 px 62 px")]] []
+showGoalMarker m = img [src <| markerImage m.c m.s, class "goal-marker"] []
 
 showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
 showMarker : List Wall -> Marker -> Html Msg
-showMarker lw m = let
-                    p = getAt m.i lw
-                  in
-                    if m.r == 0 then
-                        img [src <| markerImage m.c m.s, class "marker", style <| put (first (first p)) (second (first p))] []
-                      else
-                        img [src <| markerImage m.c m.s, class "marker", style <| put (first (second p)) (second (second p))] []
+showMarker lw m =
+  let
+    p = getAt m.i lw
+  in
+    if m.r == 0 then
+        img [src <| markerImage m.c m.s,
+              class "marker",
+              style <| put (first (first p)) (second (first p))] []
+      else
+        img [src <| markerImage m.c m.s,
+              class "marker",
+              style <| put (first (second p)) (second (second p))] []
 
 
 showRobots : List Robot -> Int -> Html Msg
@@ -148,11 +165,42 @@ showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
 
 showRobot : Robot -> Html Msg
 showRobot r = div [class "robot-cell",style <| put (first r.p) (second r.p)]
-  [ img [src "media/Up.svg", onClick (Move (r, N)), classList [("btn-dir", True), ("btn-dir-north", True)]] [],
-    img [src "media/Left.svg", onClick (Move (r, W)), classList [("btn-dir", True), ("btn-dir-west", True)]] [],
-    img [src "media/Right.svg", onClick (Move (r, E)), classList [("btn-dir", True), ("btn-dir-east", True)]] [],
-    img [src "media/Down.svg", onClick (Move (r, S)), classList [("btn-dir", True), ("btn-dir-south", True)]] [],
-    img [src <| robotImage r.c, class "robot"] []
+  [ img [
+          src "media/Up.svg",
+          onClick (Move (r, N)),
+          classList [
+                      ("btn-dir", True),
+                      ("btn-dir-north", True)
+                    ]
+        ] [],
+    img [
+          src "media/Left.svg",
+          onClick (Move (r, W)),
+          classList [
+                      ("btn-dir", True),
+                      ("btn-dir-west", True)
+                    ]
+        ] [],
+    img [
+          src "media/Right.svg",
+          onClick (Move (r, E)),
+          classList [
+                      ("btn-dir", True),
+                      ("btn-dir-east", True)
+                    ]
+        ] [],
+    img [
+          src "media/Down.svg",
+          onClick (Move (r, S)),
+          classList [
+                      ("btn-dir", True),
+                      ("btn-dir-south", True)
+                    ]
+        ] [],
+    img [
+          src <| robotImage r.c,
+          class "robot"
+        ] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -165,45 +213,86 @@ internalWalls : Original -> List Wall
 internalWalls og = (drop (og.b.s*2) og.b.v) ++ (drop (og.b.s*2) og.b.h)
 
 view : Model -> Html Msg
-view model =  let
-                iw = internalWalls model.og
-              in
-                div [class "container"]
-                  [
-                  div [style [("height", "900px")]] [
-                    showBoard model.og.b.s,
-                    showRobots model.r model.og.b.s,
-                    showWalls (model.og.b.v ++ model.og.b.h) model.og.b.s,
-                    showMarkers iw model.og.m model.og.b.s
-                  ],
-                  div [class "control-container"] [
-                    showGoalMarker model.og.gm,
-                    button [ onClick (Start), classList[("btn", True), ("btn-sm", True)]] [text "New game"],
-                    button [ onClick (NextMarker), classList[("btn", True), ("btn-sm", True)]] [text "Next marker"],
-                    button [ onClick (Restart), classList[("btn", True), ("btn-sm", True)]] [text "Restart"],
-                    div [] [text <| String.concat ["Number of moves: ",(toString model.c)]]
-                  ],
-                  if cs model then
-                  div [class "win"] [
-                    div [class "win-content", style [("grid-row","2")]] [
-                      div [] [text <| String.concat["You won in ", toString model.c, " moves!"]]
+view model =
+  let
+    iw = internalWalls model.og
+  in
+    div [ class "container"] [
+          div [ style [("height", "900px")]] [
+                showBoard model.og.b.s,
+                showRobots model.r model.og.b.s,
+                showWalls (model.og.b.v ++ model.og.b.h) model.og.b.s,
+                showMarkers iw model.og.m model.og.b.s
+              ],
+                div [ class "control-container"] [
+                      showGoalMarker model.og.gm,
+                      button  [onClick (Start),
+                                classList [("btn", True), ("btn-sm", True)]] [
+                                  text "New game"
+                              ],
+                      button  [ onClick (NextMarker),
+                                classList[("btn", True),("btn-sm", True)]] [
+                                  text "Next marker"
+                              ],
+                      button [  onClick (Restart),
+                                classList[("btn", True),("btn-sm", True)]] [
+                                  text "Restart"
+                              ],
+                      div [] [
+                                text <| String.concat ["Number of moves: ",
+                                                        (toString model.c)]
+                              ]
                     ],
-                    div [class "win-content", style [("grid-row","3")]] [
-                      button [ onClick (Start), classList[("btn", True),("btn-lg", True)]] [text "New game"],
-                      button [ onClick (NextMarker), classList[("btn", True),("btn-lg", True)]] [text "Next marker"],
-                      button [ onClick (Restart), classList[("btn", True),("btn-lg", True)]] [text "Restart"]
-                    ]
-                  ]
-                  else text ""
-                ]
+                    if cs model then
+                      div [ class "win"]  [
+                            div [ class "win-content",
+                                  style [("grid-row","2")]] [
+                                    div [] [
+                                              text <|
+                                              String.concat["You won in ",
+                                              toString model.c, " moves!"]
+                                            ]
+                            ],
+                            div [ class "win-content",
+                                  style [("grid-row","3")]] [
+                                  button [onClick (Start),
+                                          classList[("btn", True),
+                                                    ("btn-lg", True)]] [
+                                                      text "New game"
+                                          ],
+                                  button [onClick (NextMarker),
+                                          classList[("btn", True),
+                                                    ("btn-lg", True)]] [
+                                                      text "Next marker"
+                                          ],
+                                  button [onClick (Restart),
+                                          classList[("btn", True),
+                                                    ("btn-lg", True)]] [
+                                                      text "Restart"
+                                          ]
+                            ]
+                      ]
+                      else text ""
+    ]
 
 
 baseGame : Original
-baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0, r = 0}}
+baseGame = {b = emptyBoard 10,
+            r = [],
+            m= [],
+            gm = {
+                    c = Red,
+                    s = Moon,
+                    i = 0,
+                    r = 0}
+                  }
 
 {-|-}
 gameGenerator : Int -> Int -> Generator Original
-gameGenerator s w = Random.map4 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2)) (markerGenerator)
+gameGenerator s w = Random.map4 Original  (boardGenerator s w)
+                                          (robotsGenerator s)
+                                          (markersGenerator (w*2))
+                                          (markerGenerator)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
@@ -213,16 +302,29 @@ update msg m = case msg of
                             am = {m | r = (move (mv) m) :: rl, c = m.c+1}
                          in (am, Cmd.none)
               Start -> (m, newGameCommand)
-              NewGame og -> if checkOverlap og.m (og.b.v ++ og.b.h) then ({m|c= m.c + 1}, newGameCommand)
-                else
-                  (originalToModel {og | b = mergeBoards (emptyBoard og.b.s) og.b}, Cmd.none)
+              NewGame og -> if checkOverlap og.m (og.b.v ++ og.b.h) then
+                              ({m|c= m.c + 1}, newGameCommand)
+                            else
+                              (originalToModel
+                                {og | b = mergeBoards
+                                          (emptyBoard og.b.s)
+                                          og.b
+                                }, Cmd.none)
               Restart -> (originalToModel m.og, Cmd.none)
-              NewMarker marker -> ({m | og = {b = m.og.b, r = m.r, m = m.og.m, gm = marker}, c = 0}, Cmd.none)
+              NewMarker marker -> ({m | og = {b = m.og.b,
+                                              r = m.r,
+                                              m = m.og.m,
+                                              gm = marker},
+                                              c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
 
 {-| -}
 checkOverlap : List Marker -> List Wall -> Bool
-checkOverlap lm lw = isOverlapping <| List.map (\m -> (if m.r == 0 then first else second ) (getAt m.i lw)) lm
+checkOverlap lm lw =
+  isOverlapping <| List.map
+                    (\m -> (if m.r == 0 then first else second )
+                    (getAt m.i lw))
+                    lm
 
 isOverlapping : List Pos -> Bool
 isOverlapping pos = case pos of
