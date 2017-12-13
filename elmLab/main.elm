@@ -1,7 +1,10 @@
-module Main exposing (prop_robot, prop_win)
+module Main exposing (prop_robot, prop_win, checkOverlap, gameGenerator, internalWalls)
 {-| The main file
 @docs prop_robot
 @docs prop_win
+@docs checkOverlap
+@docs gameGenerator
+@docs internalWalls
 -}
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
@@ -74,7 +77,7 @@ cs : Model -> Bool
 cs m = case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
         Just r -> case List.head (List.filter (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
              Just mark -> let w =
-                            (getAt mark.i (internalWalls m))
+                            (getAt mark.i (internalWalls m.og))
                           in
                             if mark.r == 0 then
                               r.p == first w
@@ -154,13 +157,13 @@ showWalls lw s = div [wallWrapper s] (List.concat (List.map showWall lw))
 
 showWall : Wall -> List (Html Msg)
 showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
-
-internalWalls : Model -> List Wall
-internalWalls m = (drop (m.og.b.s*2) m.og.b.v) ++ (drop (m.og.b.s*2) m.og.b.h)
+{-|-}
+internalWalls : Original -> List Wall
+internalWalls og = (drop (og.b.s*2) og.b.v) ++ (drop (og.b.s*2) og.b.h)
 
 view : Model -> Html Msg
 view model =  let
-                iw = internalWalls model
+                iw = internalWalls model.og
               in
                 div [class "container"]
                   [
@@ -195,6 +198,7 @@ view model =  let
 baseGame : Original
 baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0, r = 0}}
 
+{-|-}
 gameGenerator : Int -> Int -> Generator Original
 gameGenerator s w = Random.map4 Original (boardGenerator s w) (robotsGenerator s) (markersGenerator (w*2)) (markerGenerator)
 
@@ -206,10 +210,21 @@ update msg m = case msg of
                             am = {m | r = (move (mv) m) :: rl, c = m.c+1}
                          in (am, Cmd.none)
               Start -> (m, newGameCommand)
-              NewGame og -> (originalToModel {og | b = mergeBoards (emptyBoard og.b.s) og.b}, Cmd.none)
+              NewGame og -> if checkOverlap og.m (og.b.v ++ og.b.h) then ({m|c= m.c + 1}, newGameCommand)
+                else
+                  (originalToModel {og | b = mergeBoards (emptyBoard og.b.s) og.b}, Cmd.none)
               Restart -> (originalToModel m.og, Cmd.none)
               NewMarker marker -> ({m | og = {b = m.og.b, r = m.r, m = m.og.m, gm = marker}, c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
+
+{-| -}
+checkOverlap : List Marker -> List Wall -> Bool
+checkOverlap lm lw = isOverlapping <| List.map (\m -> (if m.r == 0 then first else second ) (getAt m.i lw)) lm
+
+isOverlapping : List Pos -> Bool
+isOverlapping pos = case pos of
+  (p::ps) -> List.member p ps || isOverlapping ps
+  [] -> False
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
