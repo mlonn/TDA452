@@ -73,7 +73,13 @@ prop_robot = describe "Robot tests"
 cs : Model -> Bool
 cs m = case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
         Just r -> case List.head (List.filter (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
-             Just mark -> r.p == first (getAt mark.i (internalWalls m))
+             Just mark -> let w =
+                            (getAt mark.i (internalWalls m))
+                          in
+                            if mark.r == 0 then
+                              r.p == first w
+                            else
+                              r.p == second w
              Nothing -> False
         Nothing -> False
 
@@ -176,7 +182,15 @@ view model =  let
                     div [style [("font-size" , " 20px")]] [text <| String.concat ["Number of moves: ",(toString model.c)]]
                   ],
                   if cs model then
-                  div [style [("position","absolute"), ("z-index","50"), ("width", "100%"), ("height", "100%"), ("background-color", "rgba(12, 12, 12, 0.6)")]] [text "hej"]
+                  div [winStyle] [
+                    div [winContentContainer] [
+                      div [winMessageStyle] [text <| String.concat["You won in ", toString model.c, " moves!"]]
+                    ],
+                    div [winContentContainer] [
+                      button [ onClick (Start), winButtonStyle ] [text "New game"],
+                      button [ onClick (NextMarker), winButtonStyle ] [text "Next marker"]
+                    ]
+                  ]
                   else text ""
                 ]
 

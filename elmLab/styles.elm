@@ -1,4 +1,4 @@
-module Styles exposing (controlStyle, baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, buttonStyle, robotImage, markerImage)
+module Styles exposing (winMessageStyle, winContentContainer, winButtonStyle, winStyle, controlStyle, baseCell, robotCellStyle, robotStyle, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, buttonStyle, robotImage, markerImage)
 {-| css stylings
 @docs baseCell
 @docs robotCellStyle
@@ -14,6 +14,10 @@ module Styles exposing (controlStyle, baseCell, robotCellStyle, robotStyle, wall
 @docs buttonStyle
 @docs robotImage
 @docs controlStyle
+@docs winStyle
+@docs winButtonStyle
+@docs winContentContainer
+@docs winMessageStyle
 -}
 
 import Tuple exposing (first , second)
@@ -109,3 +113,40 @@ robotImage c = concat ["media/", (toString c), "/Robot.svg"]
 {-| -}
 markerImage : Color -> Symbol -> String
 markerImage c s = concat ["media/", (toString c), "/", (toString s), ".svg"]
+
+{-| -}
+winStyle : Attribute msg
+winStyle = style [("position","absolute"),
+                  ("z-index","50"),
+                  ("width", "100%"),
+                  ("height", "100%"),
+                  ("background-color", "rgba(12, 12, 12, 0.6)"),
+                  ("display","grid"),
+                  ("grid-template-columns", "100%"),
+                  ("grid-template-rows", "50% 50%")]
+{-| -}
+winButtonStyle : Attribute msg
+winButtonStyle = style [("border-radius" , " 10px"),
+                        ("font-family" , " Courier New"),
+                        ("color" , " #ffffff"),
+                        ("font-size" , " 50px"),
+                        ("width" , " 20%"),
+                        ("background" , " #09cdda"),
+                        ("padding" , " 10px 20px 10px 20px"),
+                        ("margin" , " 10px 20px 10px 20px"),
+                        ("text-decoration" , " none"),
+                        ("grid-column", "1"), ("grid-row", "2") ]
+{-| -}
+winContentContainer : Attribute msg
+winContentContainer = style [("display","inline-flex"),
+                            ("flex-direction","row"),
+                            ("align-items", "center"),
+                            ("justify-content", "center")]
+{-| -}
+winMessageStyle: Attribute msg
+winMessageStyle = style [("font-size","100px"),
+                              ("font-family" ," Courier New"),
+                              ("text-decoration" , "none"),
+                              ("font-weight","bold"),
+                              ("-webkit-text-stroke","2px white")
+                              ]
