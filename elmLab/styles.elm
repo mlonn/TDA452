@@ -63,8 +63,6 @@ wrapper s = let screen = 900 in
   ("position","absolute")
   ]
 
-
-
 {-| -}
 robotImage : Color -> String
 robotImage c = concat ["media/", (toString c), "/Robot.svg"]

@@ -27,17 +27,22 @@
 .robot-cell {
   font-size: small;
   display: grid;
-  grid-template-rows: 10% 80% 10%;
+  grid-template-rows: 15% 70% 15%;
   grid-template-columns: 15% 70% 15%;
   text-align: center;
 }
 .robot {
   width: 100%;
-  height: 80%;
+  height: 70%;
   grid-column: 2;
   grid-row: 2;
 }
-
+.marker {
+  width: 90%;
+  height: 90%;
+  margin-top: 5%;
+  margin-left: 5%;
+}
 .btn {
   border-radius:  10px;
   font-family:  Courier New;
