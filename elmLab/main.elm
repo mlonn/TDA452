@@ -1,6 +1,7 @@
-module Main exposing (prop_robot)
+module Main exposing (prop_robot, prop_win)
 {-| The main file
 @docs prop_robot
+@docs prop_win
 -}
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
@@ -69,25 +70,24 @@ prop_robot = describe "Robot tests"
 
               ]
 
-cs : Robot -> Model -> Bool
-cs r m = if r.c /= m.og.gm.c then False
-         else
-           case List.head (List.filter (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
+cs : Model -> Bool
+cs m = case List.head (List.filter (\x -> x.c == m.og.gm.c) m.r) of
+        Just r -> case List.head (List.filter (\x -> x.c == m.og.gm.c && x.s == m.og.gm.s) m.og.m) of
              Just mark -> r.p == first (getAt mark.i (internalWalls m))
              Nothing -> False
+        Nothing -> False
 
-
-
+{-| -}
 prop_win : Test
 prop_win = describe "tests for winning"
   [
     fuzz2 (robot 20) symbol "Winning?" (
     \r s -> let
               mark = {c = r.c, s = s, i = 0, r= 0}
-              m = {r=[r], c=0, og={b= emptyBoard 20, r = [r], m= [mark], gm = mark}}
+              m = {r=[r], c=0, og={b= mergeBoards (emptyBoard 20) {v=lw, h=lw, s=20} , r = [r], m= [mark], gm = mark}}
               lw =[((r.p),(r.p))]
             in
-              cs r m |> Expect.equal True
+              cs m |> Expect.equal True
     )
   ]
 
@@ -174,8 +174,12 @@ view model =  let
                     button [ onClick (NextMarker), controlStyle ] [text "Next marker"],
                     button [ onClick (Reset), controlStyle ] [text "Reset"],
                     div [style [("font-size" , " 20px")]] [text <| String.concat ["Number of moves: ",(toString model.c)]]
-                  ]
+                  ],
+                  if cs model then
+                  div [style [("position","absolute"), ("z-index","50"), ("width", "100%"), ("height", "100%"), ("background-color", "rgba(12, 12, 12, 0.6)")]] [text "hej"]
+                  else text ""
                 ]
+
 
 baseGame : Original
 baseGame = {b = emptyBoard 10, r = [], m= [], gm = {c = Red, s = Moon, i = 0, r = 0}}
@@ -189,15 +193,12 @@ update msg m = case msg of
                             rl = removeRobot m.r (first mv)
                             mr = (move (mv) m)
                             am = {m | r = (move (mv) m) :: rl, c = m.c+1}
-                         in if cs mr am then (am, generate NewMarker markerGenerator) else (am, Cmd.none)
+                         in (am, Cmd.none)
               Start -> (m, newGameCommand)
-              NewGame game -> (originalToModel game, Cmd.none)
+              NewGame og -> (originalToModel {og | b = mergeBoards (emptyBoard og.b.s) og.b}, Cmd.none)
               Reset -> (originalToModel m.og, Cmd.none)
-              NewMarker marker -> ({m | og = {b = m.og.b, r = m.r, m = m.m, gm = marker}, c = 0}, Cmd.none)
+              NewMarker marker -> ({m | og = {b = m.og.b, r = m.r, m = m.og.m, gm = marker}, c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
-
---fixCollision : List Wall -> List Marker -> List Wall
---fixCollision :
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
