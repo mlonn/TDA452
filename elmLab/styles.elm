@@ -123,7 +123,7 @@ winStyle = style [("position","absolute"),
                   ("background-color", "rgba(12, 12, 12, 0.6)"),
                   ("display","grid"),
                   ("grid-template-columns", "100%"),
-                  ("grid-template-rows", "50% 50%")]
+                  ("grid-template-rows", "25% 25% 25% 25%")]
 {-| -}
 winButtonStyle : Attribute msg
 winButtonStyle = style [("border-radius" , " 10px"),
@@ -134,11 +134,10 @@ winButtonStyle = style [("border-radius" , " 10px"),
                         ("background" , " #09cdda"),
                         ("padding" , " 10px 20px 10px 20px"),
                         ("margin" , " 10px 20px 10px 20px"),
-                        ("text-decoration" , " none"),
-                        ("grid-column", "1"), ("grid-row", "2") ]
+                        ("text-decoration" , " none") ]
 {-| -}
-winContentContainer : Attribute msg
-winContentContainer = style [("display","inline-flex"),
+winContentContainer : List (String, String)
+winContentContainer =   [("display","inline-flex"),
                             ("flex-direction","row"),
                             ("align-items", "center"),
                             ("justify-content", "center")]

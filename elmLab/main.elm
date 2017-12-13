@@ -6,7 +6,7 @@ module Main exposing (prop_robot, prop_win)
 import Tuple exposing (first, second)
 import List exposing (member, map, unzip, drop)
 import Random.Pcg as Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
-import Html exposing (programWithFlags, Html, div, text, Attribute, button, img)
+import Html exposing (program, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (style, class, src)
 import Common exposing (..)
@@ -20,7 +20,7 @@ import Expect
 
 type alias Move = (Robot, Direction)
 
-type alias Original = {b:Board, r:List Robot, m:List Marker, gm: Marker}
+type alias Original = { b : Board, r : List Robot, m : List Marker, gm : Marker}
 
 type alias Model = {r:List Robot, c:Int, og:Original}
 
@@ -178,17 +178,18 @@ view model =  let
                     showGoalMarker model.og.gm,
                     button [ onClick (Start), controlStyle ] [text "New game"],
                     button [ onClick (NextMarker), controlStyle ] [text "Next marker"],
-                    button [ onClick (Reset), controlStyle ] [text "Reset"],
+                    button [ onClick (Reset), controlStyle ] [text "Restart"],
                     div [style [("font-size" , " 20px")]] [text <| String.concat ["Number of moves: ",(toString model.c)]]
                   ],
                   if cs model then
                   div [winStyle] [
-                    div [winContentContainer] [
+                    div [style <| ("grid-row","2") :: winContentContainer] [
                       div [winMessageStyle] [text <| String.concat["You won in ", toString model.c, " moves!"]]
                     ],
-                    div [winContentContainer] [
+                    div [style <| ("grid-row","3") :: winContentContainer] [
                       button [ onClick (Start), winButtonStyle ] [text "New game"],
-                      button [ onClick (NextMarker), winButtonStyle ] [text "Next marker"]
+                      button [ onClick (NextMarker), winButtonStyle ] [text "Next marker"],
+                      button [ onClick (Reset), winButtonStyle ] [text "Restart"]
                     ]
                   ]
                   else text ""
@@ -229,8 +230,8 @@ removeRobot lr r =case lr of
 newGameCommand : Cmd Msg
 newGameCommand = generate NewGame (gameGenerator 16 25)
 
-init : {startTime : Float} -> (Model, Cmd Msg)
-init {startTime} = (originalToModel baseGame, newGameCommand)
+init : (Model, Cmd Msg)
+init = (originalToModel baseGame, newGameCommand)
 
 originalToModel : Original -> Model
 originalToModel og = {
@@ -244,8 +245,8 @@ subscriptions model =
   Sub.none
 
 
-main : Program { startTime : Float } Model Msg
-main = programWithFlags {init = init,
+main : Program Never Model Msg
+main = program {init = init,
                 view = view,
                 update = update,
                 subscriptions = subscriptions}
