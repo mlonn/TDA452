@@ -20,10 +20,10 @@ robot i = Fuzz.map2 Robot color (pos i)
 {-| Moves a robot one step in a direction -}
 moveRobot : Robot -> Direction -> Robot
 moveRobot r d = case d of
-  N -> {c = r.c, p = (first r.p, (second r.p)-1)}
-  S -> {c = r.c, p = (first r.p, (second r.p) + 1)}
-  E -> {c = r.c, p = ((first r.p)+1, second r.p)}
-  W -> {c = r.c, p = ((first r.p)-1, second r.p)}
+  N -> {r | p = (first r.p, (second r.p)-1)}
+  S -> {r | p = (first r.p, (second r.p) + 1)}
+  E -> {r | p = ((first r.p)+1, second r.p)}
+  W -> {r | p = ((first r.p)-1, second r.p)}
 
 {-| Makes a random robot generator -}
 robotsGenerator : Int -> Generator (List Robot)

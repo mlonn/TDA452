@@ -14,25 +14,12 @@ import Common exposing (..)
 import Robot exposing (..)
 import Board exposing (..)
 import Marker exposing (..)
-import Styles exposing (..)
+import Web exposing (..)
 import Test exposing (Test, describe, test, fuzz, fuzz2)
 import Fuzz exposing (..)
 import Expect
 
-type alias Move = (Robot, Direction)
-
-type alias Original = {b: Board, r: List Robot, m: List Marker, gm: Marker}
-
 type alias Model = {r: List Robot, c: Int, og: Original}
-
-
-type Msg
-  = Move Move
-  | NewGame Original
-  | Start
-  | Restart
-  | NewMarker Marker
-  | NextMarker
 
 {-| Moves a robot until it reaches a wall or another robot -}
 move : Move -> Model -> Robot
@@ -144,104 +131,6 @@ isWall p d b = case d of
   W -> (member p (List.map second b.v))
   E -> (member p (List.map first b.v))
 
-{-| Generates html code to show a board-}
-showBoard : Int -> Html Msg
-showBoard i = div [boardWrapper i] (makeCells (i) (i))
-
-{-| Generates html code for all cells given a dimension-}
-makeCells : Int -> Int -> List (Html Msg)
-makeCells s i = case i of
-  0 -> []
-  _ -> makeRow s i ++ makeCells s (i-1)
-
-{-| Generates html code for a row of cells-}
-makeRow : Int -> Int -> List (Html Msg)
-makeRow s i =
-  case s of
-    0 -> []
-    _ -> makeCell s i :: makeRow (s-1) i
-
-{-| Generates html code for a single cell-}
-makeCell : Int -> Int -> Html Msg
-makeCell s i = div [class "base-cell", style <| put s i] []
-
-{-| Generate html code for the goal marker -}
-showGoalMarker : Marker -> Html Msg
-showGoalMarker m = img [src <| markerImage m.c m.s, class "goal-marker"] []
-
-{-| Generates html code for all markers-}
-showMarkers :  List Wall -> List Marker -> Int -> Html Msg
-showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
-
-{-| Generates html code for a marker-}
-showMarker : List Wall -> Marker -> Html Msg
-showMarker lw m =
-  let
-    p = getAt m.i lw
-  in
-    if m.r == 0 then
-        img [src <| markerImage m.c m.s,
-              class "marker",
-              style <| put (first (first p)) (second (first p))] []
-      else
-        img [src <| markerImage m.c m.s,
-              class "marker",
-              style <| put (first (second p)) (second (second p))] []
-
-
-
-{-| Translates Robots to html -}
-showRobots : List Robot -> Int -> Html Msg
-showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
-
-{-| Translates a robot to html -}
-showRobot : Robot -> Html Msg
-showRobot r = div [class "robot-cell",style <| put (first r.p) (second r.p)]
-  [ img [
-          src "media/Up.svg",
-          onClick (Move (r, N)),
-          classList [
-                      ("btn-dir", True),
-                      ("btn-dir-north", True)
-                    ]
-        ] [],
-    img [
-          src "media/Left.svg",
-          onClick (Move (r, W)),
-          classList [
-                      ("btn-dir", True),
-                      ("btn-dir-west", True)
-                    ]
-        ] [],
-    img [
-          src "media/Right.svg",
-          onClick (Move (r, E)),
-          classList [
-                      ("btn-dir", True),
-                      ("btn-dir-east", True)
-                    ]
-        ] [],
-    img [
-          src "media/Down.svg",
-          onClick (Move (r, S)),
-          classList [
-                      ("btn-dir", True),
-                      ("btn-dir-south", True)
-                    ]
-        ] [],
-    img [
-          src <| robotImage r.c,
-          class "robot"
-        ] []
-  ]
-
-{-| Translates walls to html -}
-showWalls : List Wall -> Int -> Html Msg
-showWalls lw s = div [wallWrapper s] (List.concat (List.map showWall lw))
-
-{-| Translates a single wall to html -}
-showWall : Wall -> List (Html Msg)
-showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
 
 {-| Removes all outerwalls from an original -}
 internalWalls : Original -> List Wall
@@ -262,55 +151,10 @@ view model =
                 showWalls (model.og.b.v ++ model.og.b.h) model.og.b.s,
                 showMarkers iw model.og.m model.og.b.s
               ],
-                div [ class "control-container"] [
-                      showGoalMarker model.og.gm,
-                      button  [onClick (Start),
-                                classList [("btn", True), ("btn-sm", True)]] [
-                                  text "New game"
-                              ],
-                      button  [ onClick (NextMarker),
-                                classList[("btn", True),("btn-sm", True)]] [
-                                  text "Next marker"
-                              ],
-                      button [  onClick (Restart),
-                                classList[("btn", True),("btn-sm", True)]] [
-                                  text "Restart"
-                              ],
-                      div [] [
-                                text <| String.concat ["Number of moves: ",
-                                                        (toString model.c)]
-                              ]
-                    ],
-                    if hasWon model then
-                      div [ class "win"]  [
-                            div [ class "win-content",
-                                  style [("grid-row","2")]] [
-                                    div [] [
-                                              text <|
-                                              String.concat["You won in ",
-                                              toString model.c, " moves!"]
-                                            ]
-                            ],
-                            div [ class "win-content",
-                                  style [("grid-row","3")]] [
-                                  button [onClick (Start),
-                                          classList[("btn", True),
-                                                    ("btn-lg", True)]] [
-                                                      text "New game"
-                                          ],
-                                  button [onClick (NextMarker),
-                                          classList[("btn", True),
-                                                    ("btn-lg", True)]] [
-                                                      text "Next marker"
-                                          ],
-                                  button [onClick (Restart),
-                                          classList[("btn", True),
-                                                    ("btn-lg", True)]] [
-                                                      text "Restart"
-                                          ]
-                            ]
-                      ]
-                      else text ""
+                showControls model.og.gm model.c,
+                if hasWon model then
+                  showWinScreen model.c
+                else text ""
     ]
 
 {-| A base version of the game that is a placeholder
