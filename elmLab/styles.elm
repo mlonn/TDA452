@@ -1,4 +1,12 @@
-module Styles exposing (put, wallStyle, wallBorderStyle, robotWrapper, markerWrapper, markerStyle,boardWrapper, wallWrapper, robotImage, markerImage)
+module Styles exposing (put,
+                        wallStyle,
+                        wallBorderStyle,
+                        robotWrapper,
+                        markerWrapper,
+                        markerStyle,boardWrapper,
+                        wallWrapper,
+                        robotImage,
+                        markerImage)
 {-| css stylings
 @docs wallStyle
 @docs wallBorderStyle
@@ -58,7 +66,8 @@ wallWrapper s = style (("z-index", "10") :: wrapper s)
 wrapper : Int -> List (String, String)
 wrapper s = let screen = 900 in
   [("display", "grid"),
-  ("grid-template-columns", concat ["repeat(", toString (s+2) , ", ", toString (screen//(s+2)), "px)"]),
+  ("grid-template-columns", concat ["repeat(", toString (s+2) , ", ",
+                                          toString (screen//(s+2)), "px)"]),
   ("grid-auto-rows", concat [toString (screen//(s+2)), "px"]),
   ("position","absolute")
   ]

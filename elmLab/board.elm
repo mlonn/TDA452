@@ -1,4 +1,8 @@
-module Board exposing (Board, emptyBoard, boardGenerator, prop_emptyBoard, Wall)
+module Board exposing (Board,
+                        emptyBoard,
+                        boardGenerator,
+                        prop_emptyBoard,
+                        Wall)
 {-|  Board and its functions
 @docs Board
 @docs boardGenerator
@@ -23,7 +27,8 @@ emptyBoard s = {v = generateVWalls s, h = generateHWalls s, s = s}
 prop_emptyBoard : Test
 prop_emptyBoard = describe "checking empty generation"
                       [ fuzz (Fuzz.intRange 1 100) "Checking size"
-                        (\i -> let b = emptyBoard i in (length b.v) + (length b.h) |> Expect.equal (i*4) )
+                        (\i -> let b = emptyBoard i in (length b.v) +
+                          (length b.h) |> Expect.equal (i*4) )
                       ]
 
 generateHWalls : Int -> List Wall
@@ -45,13 +50,15 @@ makeVOutline s i = case i of
 
 {-| -}
 boardGenerator : Int -> Int -> Generator Board
-boardGenerator s w = map3 Board (vWallsGenerator s w) (hWallsGenerator s w) (int s s)
+boardGenerator s w = map3 Board
+                            (vWallsGenerator s w)
+                            (hWallsGenerator s w)
+                            (int s s)
 
 mergeBoards : Board -> Board -> Board
 mergeBoards b1 b2 = if (b1.s == b2.s) then
-                                      {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
-                                    else {v = b1.v, h=b1.h, s=b1.s}
-
+                      {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
+                    else {v = b1.v, h=b1.h, s=b1.s}
 
 vWallsGenerator : Int -> Int -> Generator (List Wall)
 vWallsGenerator limit n = list n (vWallGenerator limit)
