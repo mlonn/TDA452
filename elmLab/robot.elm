@@ -17,7 +17,7 @@ type alias Robot = {c: Color, p: Pos }
 robot : Int -> Fuzzer Robot
 robot i = Fuzz.map2 Robot color (pos i)
 
-{-| Moves a robot until it reaches a wall or another robot. -}
+{-| Moves a robot one step in a direction -}
 moveRobot : Robot -> Direction -> Robot
 moveRobot r d = case d of
   N -> {c = r.c, p = (first r.p, (second r.p)-1)}

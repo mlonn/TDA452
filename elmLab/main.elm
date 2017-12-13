@@ -34,6 +34,7 @@ type Msg
   | NewMarker Marker
   | NextMarker
 
+{-| Moves a robot until it reaches a wall or another robot -}
 move : Move -> Model -> Robot
 move (r , d) m = if isWall r.p d m.og.b || isRobot m.r (moveRobot r d) then
                   r
@@ -169,9 +170,12 @@ showMarker lw m =
               style <| put (first (second p)) (second (second p))] []
 
 
+
+{-| Translates Robots to html -}
 showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
 
+{-| Translates a robot to html -}
 showRobot : Robot -> Html Msg
 showRobot r = div [class "robot-cell",style <| put (first r.p) (second r.p)]
   [ img [
@@ -212,15 +216,21 @@ showRobot r = div [class "robot-cell",style <| put (first r.p) (second r.p)]
         ] []
   ]
 
+{-| Translates walls to html -}
 showWalls : List Wall -> Int -> Html Msg
 showWalls lw s = div [wallWrapper s] (List.concat (List.map showWall lw))
 
+{-| Translates a single wall to html -}
 showWall : Wall -> List (Html Msg)
 showWall w = [div [wallStyle first w] [], div [wallStyle second w] []]
-{-|-}
+
+{-| Removes all outerwalls from an original -}
 internalWalls : Original -> List Wall
 internalWalls og = (drop (og.b.s*2) og.b.v) ++ (drop (og.b.s*2) og.b.h)
 
+{-| The output, all html code is made here. Also checks
+if we've won or not to know if the overlay when you've won should be there
+or not. -}
 view : Model -> Html Msg
 view model =
   let
@@ -284,7 +294,8 @@ view model =
                       else text ""
     ]
 
-
+{-| A base version of the game that is a placeholder
+until a game has been generated -}
 baseGame : Original
 baseGame = {b = emptyBoard 10,
             r = [],
@@ -296,13 +307,15 @@ baseGame = {b = emptyBoard 10,
                     r = 0}
                   }
 
-{-|-}
+{-| Returns a generator for originals -}
 gameGenerator : Int -> Int -> Generator Original
 gameGenerator s w = Random.map4 Original  (boardGenerator s w)
                                           (robotsGenerator s)
                                           (markersGenerator (w*2))
                                           (markerGenerator)
 
+{-| Does different things depending on what msg was called.
+Mostly referes to other methods -}
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg m = case msg of
               Move mv -> let
@@ -327,7 +340,7 @@ update msg m = case msg of
                                               c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
 
-{-| -}
+{-| Checks if any markers are on the same position -}
 checkOverlap : List Marker -> List Wall -> Bool
 checkOverlap lm lw =
   isOverlapping <| List.map
@@ -335,16 +348,13 @@ checkOverlap lm lw =
                     (getAt m.i lw))
                     lm
 
+{-| Checks if the any positions overlap -}
 isOverlapping : List Pos -> Bool
 isOverlapping pos = case pos of
   (p::ps) -> List.member p ps || isOverlapping ps
   [] -> False
 
-mergeBoards : Board -> Board -> Board
-mergeBoards b1 b2 = if (b1.s == b2.s) then
-                                      {v = b1.v++b2.v, h= b1.h++b2.h, s=b1.s}
-                                    else {v = b1.v, h=b1.h, s=b1.s}
-
+{-| removes a robot from a list of robots -}
 removeRobot : List Robot -> Robot -> List Robot
 removeRobot lr r =case lr of
   (x :: xs) -> if x.c == r.c
@@ -352,12 +362,15 @@ removeRobot lr r =case lr of
                else x :: removeRobot xs r
   [] -> []
 
+{-| command that generates all things needed for a game -}
 newGameCommand : Cmd Msg
 newGameCommand = generate NewGame (gameGenerator 16 25)
 
+{-| sets up a base for a game -}
 init : (Model, Cmd Msg)
 init = (originalToModel baseGame, newGameCommand)
 
+{-| makes a model from an original -}
 originalToModel : Original -> Model
 originalToModel og = {
                   r = og.r,
@@ -369,7 +382,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-
+{-| Starts the program-}
 main : Program Never Model Msg
 main = program {init = init,
                 view = view,

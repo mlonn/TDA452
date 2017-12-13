@@ -2,13 +2,15 @@ module Board exposing (Board,
                         emptyBoard,
                         boardGenerator,
                         prop_emptyBoard,
-                        Wall)
+                        Wall,
+                        mergeBoards)
 {-|  Board and its functions
 @docs Board
 @docs boardGenerator
 @docs emptyBoard
 @docs prop_emptyBoard
 @docs Wall
+@docs mergeBoards
 -}
 import Random.Pcg as Random exposing (..)
 import Test exposing (Test, fuzz, describe)
