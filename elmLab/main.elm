@@ -8,7 +8,7 @@ import List exposing (member, map, unzip, drop)
 import Random.Pcg as Random exposing (map3, Generator, generate, int, pair, list, step, initialSeed, Seed)
 import Html exposing (program, Html, div, text, Attribute, button, img)
 import Html.Events exposing (onClick)
-import Html.Attributes exposing (style, class, src)
+import Html.Attributes exposing (style, class, src, classList)
 import Common exposing (..)
 import Robot exposing (..)
 import Board exposing (..)
@@ -29,7 +29,7 @@ type Msg
   = Move Move
   | NewGame Original
   | Start
-  | Reset
+  | Restart
   | NewMarker Marker
   | NextMarker
 
@@ -122,7 +122,7 @@ makeRow s i =
     _ -> makeCell s i :: makeRow (s-1) i
 
 makeCell : Int -> Int -> Html Msg
-makeCell s i = div [baseCell s i] []
+makeCell s i = div [class "base-cell", style <| put s i] []
 
 showGoalMarker : Marker -> Html Msg
 showGoalMarker m = img [src <| markerImage m.c m.s, style [("margin","62 px 62 px 62 px 62 px")]] []
@@ -141,12 +141,12 @@ showRobots : List Robot -> Int -> Html Msg
 showRobots lr s = div [robotWrapper s] (List.map showRobot lr)
 
 showRobot : Robot -> Html Msg
-showRobot r = div [robotCellStyle r]
-  [ img [src "media/Up.svg", onClick (Move (r, N)), buttonStyle N] [],
-    img [src "media/Left.svg", onClick (Move (r, W)), buttonStyle W] [],
-    img [src "media/Right.svg", onClick (Move (r, E)), buttonStyle E] [],
-    img [src "media/Down.svg", onClick (Move (r, S)), buttonStyle S] [],
-    img [src <| robotImage r.c, robotStyle] []
+showRobot r = div [class "robot-cell",style <| put (first r.p) (second r.p)]
+  [ img [src "media/Up.svg", onClick (Move (r, N)), classList [("btn-dir", True), ("btn-dir-north", True)]] [],
+    img [src "media/Left.svg", onClick (Move (r, W)), classList [("btn-dir", True), ("btn-dir-west", True)]] [],
+    img [src "media/Right.svg", onClick (Move (r, E)), classList [("btn-dir", True), ("btn-dir-east", True)]] [],
+    img [src "media/Down.svg", onClick (Move (r, S)), classList [("btn-dir", True), ("btn-dir-south", True)]] [],
+    img [src <| robotImage r.c, class "robot"] []
   ]
 
 showWalls : List Wall -> Int -> Html Msg
@@ -162,11 +162,7 @@ view : Model -> Html Msg
 view model =  let
                 iw = internalWalls model
               in
-                div [style [("display","grid"),
-                            ("grid-template-columns","900px 200px"),
-                            ("align-items","center"),
-                            ("justify-content","center")
-                            ]]
+                div [class "container"]
                   [
                   div [style [("height", "900px")]] [
                     showBoard model.og.b.s,
@@ -174,22 +170,22 @@ view model =  let
                     showWalls (model.og.b.v ++ model.og.b.h) model.og.b.s,
                     showMarkers iw model.og.m model.og.b.s
                   ],
-                  div [style [("display","inline-flex"), ("flex-direction","column"),("align-items", "center"), ("justify-content", "center"),("width", "100%")]] [
+                  div [class "control-container"] [
                     showGoalMarker model.og.gm,
-                    button [ onClick (Start), controlStyle ] [text "New game"],
-                    button [ onClick (NextMarker), controlStyle ] [text "Next marker"],
-                    button [ onClick (Reset), controlStyle ] [text "Restart"],
-                    div [style [("font-size" , " 20px")]] [text <| String.concat ["Number of moves: ",(toString model.c)]]
+                    button [ onClick (Start), classList[("btn", True), ("btn-sm", True)]] [text "New game"],
+                    button [ onClick (NextMarker), classList[("btn", True), ("btn-sm", True)]] [text "Next marker"],
+                    button [ onClick (Restart), classList[("btn", True), ("btn-sm", True)]] [text "Restart"],
+                    div [] [text <| String.concat ["Number of moves: ",(toString model.c)]]
                   ],
                   if cs model then
-                  div [winStyle] [
-                    div [style <| ("grid-row","2") :: winContentContainer] [
-                      div [winMessageStyle] [text <| String.concat["You won in ", toString model.c, " moves!"]]
+                  div [class "win"] [
+                    div [class "win-content", style [("grid-row","2")]] [
+                      div [] [text <| String.concat["You won in ", toString model.c, " moves!"]]
                     ],
-                    div [style <| ("grid-row","3") :: winContentContainer] [
-                      button [ onClick (Start), winButtonStyle ] [text "New game"],
-                      button [ onClick (NextMarker), winButtonStyle ] [text "Next marker"],
-                      button [ onClick (Reset), winButtonStyle ] [text "Restart"]
+                    div [class "win-content", style [("grid-row","3")]] [
+                      button [ onClick (Start), classList[("btn", True),("btn-lg", True)]] [text "New game"],
+                      button [ onClick (NextMarker), classList[("btn", True),("btn-lg", True)]] [text "Next marker"],
+                      button [ onClick (Restart), classList[("btn", True),("btn-lg", True)]] [text "Restart"]
                     ]
                   ]
                   else text ""
@@ -211,7 +207,7 @@ update msg m = case msg of
                          in (am, Cmd.none)
               Start -> (m, newGameCommand)
               NewGame og -> (originalToModel {og | b = mergeBoards (emptyBoard og.b.s) og.b}, Cmd.none)
-              Reset -> (originalToModel m.og, Cmd.none)
+              Restart -> (originalToModel m.og, Cmd.none)
               NewMarker marker -> ({m | og = {b = m.og.b, r = m.r, m = m.og.m, gm = marker}, c = 0}, Cmd.none)
               NextMarker  -> (m, generate NewMarker markerGenerator )
 
