@@ -134,10 +134,13 @@ showMarkers :  List Wall -> List Marker -> Int -> Html Msg
 showMarkers lw lm s = div[markerWrapper s] (List.map (showMarker lw) lm)
 
 showMarker : List Wall -> Marker -> Html Msg
-showMarker lw m = if m.r == 0 then
-                      img [src <| markerImage m.c m.s, markerStyle <| first (getAt m.i lw)] []
-                    else
-                      img [src <| markerImage m.c m.s, markerStyle <| second (getAt m.i lw)] []
+showMarker lw m = let
+                    p = getAt m.i lw
+                  in
+                    if m.r == 0 then
+                        img [src <| markerImage m.c m.s, class "marker", style <| put (first (first p)) (second (first p))] []
+                      else
+                        img [src <| markerImage m.c m.s, class "marker", style <| put (first (second p)) (second (second p))] []
 
 
 showRobots : List Robot -> Int -> Html Msg

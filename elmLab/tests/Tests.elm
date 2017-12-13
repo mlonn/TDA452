@@ -13,6 +13,3 @@ suite = describe "all the tests"
       prop_emptyBoard,
       prop_win
     ]
-
-
-    -- todo "Implement our first test. See http://package.elm-lang.org/packages/elm-community/elm-test/latest for how to do this!"

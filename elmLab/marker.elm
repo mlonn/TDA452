@@ -42,16 +42,25 @@ markerCombinations : List ( Symbol, Color )
 markerCombinations =  let
                         mColors = List.drop 1 colors
                       in
-                        List.concat <| List.map2 (\s cs -> List.map (\c -> (s, c)) cs) symbols <| List.map (\x -> mColors) mColors
+                        List.concat <| List.map2
+                        (\s cs -> List.map (\c -> (s, c)) cs) symbols <|
+                          List.map (\x -> mColors) mColors
 {-| -}
 markersGenerator : Int -> Generator (List Marker)
-markersGenerator i = flattenList <| List.map (markerGeneratorIndex i) markerCombinations
+markersGenerator i = flattenList <|
+                        List.map (markerGeneratorIndex i) markerCombinations
 {-| -}
 markerGeneratorIndex : Int -> (Symbol, Color) -> Generator Marker
-markerGeneratorIndex i (s, c) = Random.map2 (mkMarker c s) (Random.int 0 (i-1)) (Random.int 0 1)
+markerGeneratorIndex i (s, c) =
+  Random.map2 (mkMarker c s) (Random.int 0 (i-1)) (Random.int 0 1)
 {-| -}
 markerGenerator : Generator Marker
-markerGenerator = Random.map4 Marker colorGenerator symbolGenerator (Random.int 0 0) (Random.int 0 1)
+markerGenerator =
+  Random.map4 Marker
+                colorGenerator
+                symbolGenerator
+                (Random.int 0 0)
+                (Random.int 0 1)
 {-| -}
 mkMarker : Color -> Symbol -> Int -> Int -> Marker
 mkMarker c s i r =   {c = c, s = s, i = i, r = r}
